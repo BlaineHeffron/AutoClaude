@@ -4,6 +4,7 @@ import {
   updateSession,
 } from "../core/memory";
 import { summarizeSession, collectUniqueFiles } from "../core/summarizer";
+import { extractLearningsFromSession } from "../core/analyzer";
 import { logger } from "../util/logger";
 
 // ---------------------------------------------------------------------------
@@ -18,6 +19,10 @@ export async function handleSessionStop(input: HookInput): Promise<HookOutput> {
     // Generate structured summary using the summarizer module
     const summary = summarizeSession(actions);
     const filesModified = collectUniqueFiles(actions);
+
+    // Extract learnings from error→fix sequences
+    const projectPath = input.cwd ?? process.cwd();
+    extractLearningsFromSession(actions, sessionId, projectPath);
 
     updateSession(sessionId, {
       summary,

@@ -4,7 +4,9 @@
       "command": "node",
       "args": ["${PLUGIN_DIR}/dist/mcp/index.js"],
       "env": {
-        "AUTOCLAUDE_DB": "${HOME}/.autoclaude/memory.db"
+        "AUTOCLAUDE_DB": "${HOME}/.autoclaude/memory.db",
+        "AUTOCLAUDE_PROJECT_PATH": "${CWD}",
+        "AUTOCLAUDE_SESSION_ID": "${SESSION_ID}"
       }
     }
   }

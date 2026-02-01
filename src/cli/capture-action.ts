@@ -1,5 +1,6 @@
 import type { HookInput, HookOutput } from "./types";
 import { insertAction } from "../core/memory";
+import { analyzeActionForDecisions } from "../core/analyzer";
 import { logger } from "../util/logger";
 
 // ---------------------------------------------------------------------------
@@ -73,12 +74,18 @@ export async function captureAction(input: HookInput): Promise<HookOutput> {
     const { actionType, filePath } = classifyAction(toolName, input.tool_input);
     const { outcome, errorMessage } = determineOutcome(input.tool_output);
 
-    const description =
-      actionType !== "other"
-        ? `${actionType}: ${filePath ?? toolName}`
-        : `${toolName} invocation`;
+    // Build a descriptive summary. For "other" Bash commands, include the
+    // actual command so the analyzer can detect library installs, etc.
+    let description: string;
+    if (actionType !== "other") {
+      description = `${actionType}: ${filePath ?? toolName}`;
+    } else if (toolName === "Bash" && input.tool_input?.command) {
+      description = `bash: ${String(input.tool_input.command).slice(0, 200)}`;
+    } else {
+      description = `${toolName} invocation`;
+    }
 
-    insertAction({
+    const action = {
       session_id: input.session_id,
       tool_name: toolName,
       file_path: filePath,
@@ -86,7 +93,13 @@ export async function captureAction(input: HookInput): Promise<HookOutput> {
       description,
       outcome,
       error_message: errorMessage,
-    });
+    };
+
+    insertAction(action);
+
+    // Analyze for implicit decisions (config changes, library installs)
+    const projectPath = input.cwd ?? process.cwd();
+    analyzeActionForDecisions(action, projectPath);
 
     logger.debug(
       `[capture-action] Recorded ${actionType} (${outcome}) for session ${input.session_id}`,
