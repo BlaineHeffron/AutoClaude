@@ -13,4 +13,12 @@ Capture the current session state. Summarize:
 4. Any open questions or blockers
 5. Recommended next steps
 
-Then run `node ${PLUGIN_DIR}/dist/cli/index.js pre-compact` with this summary piped to stdin as JSON.
+Format the summary as a JSON object with fields: session_id, current_task, progress_summary, open_questions, next_steps, working_files.
+
+Then pipe it to the pre-compact handler:
+
+```bash
+echo '<your JSON summary>' | node ${PLUGIN_DIR}/dist/cli/index.js pre-compact
+```
+
+This saves a snapshot to the memory store that will be restored automatically on the next session start after compaction or resume.

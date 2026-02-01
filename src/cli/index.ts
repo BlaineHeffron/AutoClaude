@@ -97,6 +97,10 @@ async function routeCommand(command: string, input: HookInput): Promise<HookOutp
       const { handleQuery } = await import('./query');
       return handleQuery(input, queryText);
     }
+    case 'user-prompt': {
+      const { handleUserPrompt } = await import('./user-prompt');
+      return handleUserPrompt(input);
+    }
     case 'stats': {
       const { handleStats } = await import('./stats');
       return handleStats(input);

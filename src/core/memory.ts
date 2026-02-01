@@ -572,6 +572,184 @@ export function getSessionMetrics(sessionId: string): MetricRecord[] {
 }
 
 // ===========================================================================
+// Prompts (UserPromptSubmit logging)
+// ===========================================================================
+
+export interface PromptRecord {
+  id?: number;
+  session_id: string;
+  project_path: string;
+  timestamp?: string;
+  prompt: string;
+}
+
+export function insertPrompt(prompt: PromptRecord): number {
+  const d = db();
+  if (!d) return 0;
+
+  try {
+    const info = d
+      .prepare(
+        `INSERT INTO prompts (session_id, project_path, prompt)
+         VALUES (?, ?, ?)`,
+      )
+      .run(prompt.session_id, prompt.project_path, prompt.prompt);
+    return Number(info.lastInsertRowid);
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Searches the prompts FTS index for similar prompts in the same project.
+ * Returns prompts that match the query, excluding the current session.
+ */
+export function findSimilarPrompts(
+  query: string,
+  projectPath: string,
+  excludeSessionId?: string,
+  limit: number = 5,
+): Array<{ id: number; session_id: string; prompt: string; rank: number }> {
+  const d = db();
+  if (!d) return [];
+
+  try {
+    // Use FTS5 to find similar prompts, then filter by project
+    if (excludeSessionId) {
+      return d
+        .prepare(
+          `SELECT p.id, p.session_id, p.prompt, pf.rank
+           FROM prompts_fts pf
+           JOIN prompts p ON p.rowid = pf.rowid
+           WHERE prompts_fts MATCH ?
+             AND p.project_path = ?
+             AND p.session_id != ?
+           ORDER BY pf.rank
+           LIMIT ?`,
+        )
+        .all(query, projectPath, excludeSessionId, limit) as Array<{
+        id: number;
+        session_id: string;
+        prompt: string;
+        rank: number;
+      }>;
+    } else {
+      return d
+        .prepare(
+          `SELECT p.id, p.session_id, p.prompt, pf.rank
+           FROM prompts_fts pf
+           JOIN prompts p ON p.rowid = pf.rowid
+           WHERE prompts_fts MATCH ?
+             AND p.project_path = ?
+           ORDER BY pf.rank
+           LIMIT ?`,
+        )
+        .all(query, projectPath, limit) as Array<{
+        id: number;
+        session_id: string;
+        prompt: string;
+        rank: number;
+      }>;
+    }
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Returns aggregate project-level metrics useful for the stats dashboard.
+ */
+export function getProjectMetrics(projectPath: string): {
+  sessionCount: number;
+  totalActions: number;
+  totalFailures: number;
+  avgUtilization: number;
+  totalCompactions: number;
+  decisionCount: number;
+  learningCount: number;
+  promptCount: number;
+  repeatedPromptCount: number;
+} {
+  const d = db();
+  const empty = {
+    sessionCount: 0,
+    totalActions: 0,
+    totalFailures: 0,
+    avgUtilization: 0,
+    totalCompactions: 0,
+    decisionCount: 0,
+    learningCount: 0,
+    promptCount: 0,
+    repeatedPromptCount: 0,
+  };
+  if (!d) return empty;
+
+  try {
+    const sessionRow = d
+      .prepare(
+        `SELECT COUNT(*) as cnt, COALESCE(SUM(compaction_count), 0) as compactions,
+                COALESCE(AVG(context_utilization_peak), 0) as avg_util
+         FROM sessions WHERE project_path = ?`,
+      )
+      .get(projectPath) as { cnt: number; compactions: number; avg_util: number };
+
+    const actionRow = d
+      .prepare(
+        `SELECT COUNT(*) as cnt FROM actions a
+         JOIN sessions s ON a.session_id = s.id
+         WHERE s.project_path = ?`,
+      )
+      .get(projectPath) as { cnt: number };
+
+    const failureRow = d
+      .prepare(
+        `SELECT COUNT(*) as cnt FROM actions a
+         JOIN sessions s ON a.session_id = s.id
+         WHERE s.project_path = ? AND a.outcome = 'failure'`,
+      )
+      .get(projectPath) as { cnt: number };
+
+    const decisionRow = d
+      .prepare(
+        `SELECT COUNT(*) as cnt FROM decisions WHERE project_path = ?`,
+      )
+      .get(projectPath) as { cnt: number };
+
+    const learningRow = d
+      .prepare(
+        `SELECT COUNT(*) as cnt FROM learnings WHERE project_path = ?`,
+      )
+      .get(projectPath) as { cnt: number };
+
+    let promptCount = 0;
+    try {
+      const promptRow = d
+        .prepare(
+          `SELECT COUNT(*) as cnt FROM prompts WHERE project_path = ?`,
+        )
+        .get(projectPath) as { cnt: number };
+      promptCount = promptRow.cnt;
+    } catch {
+      // prompts table may not exist yet
+    }
+
+    return {
+      sessionCount: sessionRow.cnt,
+      totalActions: actionRow.cnt,
+      totalFailures: failureRow.cnt,
+      avgUtilization: sessionRow.avg_util,
+      totalCompactions: sessionRow.compactions,
+      decisionCount: decisionRow.cnt,
+      learningCount: learningRow.cnt,
+      promptCount,
+      repeatedPromptCount: 0, // computed externally via FTS
+    };
+  } catch {
+    return empty;
+  }
+}
+
+// ===========================================================================
 // Full-text search
 // ===========================================================================
 

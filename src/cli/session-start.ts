@@ -3,8 +3,10 @@ import {
   createSession,
   decayLearnings,
   garbageCollect,
+  insertMetric,
 } from "../core/memory";
 import { buildInjectionContext } from "../core/injector";
+import { estimateUtilization } from "../core/metrics";
 import { estimateTokens } from "../util/tokens";
 import { getConfig } from "../util/config";
 import { logger } from "../util/logger";
@@ -42,13 +44,36 @@ export async function handleSessionStart(
     );
   }
 
-  // 4. If injection is disabled, return early
+  // 4. Record utilization metric if transcript is available
+  let systemMessage: string | undefined;
+
+  if (input.transcript_path && config.metrics.enabled) {
+    const util = estimateUtilization(input.transcript_path);
+    insertMetric(session_id, "context_utilization", util.utilization);
+
+    if (util.utilization >= config.metrics.criticalUtilization) {
+      systemMessage =
+        `[AutoClaude] Context utilization is at ${(util.utilization * 100).toFixed(0)}%. ` +
+        `Consider running /compact to free up context space.`;
+      logger.warn(`session-start: utilization critical at ${(util.utilization * 100).toFixed(1)}%`);
+    } else if (util.utilization >= config.metrics.warnUtilization) {
+      systemMessage =
+        `[AutoClaude] Context utilization is at ${(util.utilization * 100).toFixed(0)}%. ` +
+        `Approaching capacity — be concise to extend the session.`;
+      logger.info(`session-start: utilization warning at ${(util.utilization * 100).toFixed(1)}%`);
+    }
+  }
+
+  // 5. If injection is disabled, return early (but still include utilization warning)
   if (!config.injection.enabled) {
     logger.debug("session-start: injection disabled, skipping context build");
+    if (systemMessage) {
+      return { continue: true, hookSpecificOutput: { systemMessage } };
+    }
     return { continue: true };
   }
 
-  // 5. Build injection context using the injector module
+  // 6. Build injection context using the injector module
   const context = buildInjectionContext(
     projectPath,
     session_id,
@@ -56,19 +81,22 @@ export async function handleSessionStart(
     config,
   );
 
-  if (!context) {
+  if (!context && !systemMessage) {
     logger.debug("session-start: no context to inject");
     return { continue: true };
   }
 
-  logger.info(
-    `session-start: injecting ~${estimateTokens(context)} tokens of context`,
-  );
+  if (context) {
+    logger.info(
+      `session-start: injecting ~${estimateTokens(context)} tokens of context`,
+    );
+  }
 
   return {
     continue: true,
     hookSpecificOutput: {
-      additionalContext: context,
+      ...(context ? { additionalContext: context } : {}),
+      ...(systemMessage ? { systemMessage } : {}),
     },
   };
 }

@@ -3,9 +3,12 @@ import {
   getSession,
   getSessionActions,
   insertSnapshot,
+  insertMetric,
   updateSession,
 } from "../core/memory";
 import { summarizeSession, collectUniqueFiles, countByType } from "../core/summarizer";
+import { estimateUtilization } from "../core/metrics";
+import { getConfig } from "../util/config";
 import { logger } from "../util/logger";
 
 // ---------------------------------------------------------------------------
@@ -57,7 +60,20 @@ export async function handlePreCompact(input: HookInput): Promise<HookOutput> {
     updateSession(sessionId, {
       summary,
       files_modified: workingFiles,
+      compaction_count: (session?.compaction_count ?? 0) + 1,
     });
+
+    // Record utilization metric at compaction time
+    const config = getConfig();
+    if (input.transcript_path && config.metrics.enabled) {
+      const util = estimateUtilization(input.transcript_path);
+      insertMetric(sessionId, "context_utilization", util.utilization);
+      // Update peak utilization on session
+      const peak = session?.context_utilization_peak ?? 0;
+      if (util.utilization > peak) {
+        updateSession(sessionId, { context_utilization_peak: util.utilization });
+      }
+    }
 
     logger.info(
       `[pre-compact] Snapshot saved for session ${sessionId}: ${progressSummary}`,

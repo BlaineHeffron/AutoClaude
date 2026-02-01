@@ -1,6 +1,8 @@
 import type { HookInput, HookOutput } from "./types";
-import { insertAction } from "../core/memory";
+import { insertAction, insertMetric } from "../core/memory";
 import { analyzeActionForDecisions } from "../core/analyzer";
+import { estimateUtilization } from "../core/metrics";
+import { getConfig } from "../util/config";
 import { logger } from "../util/logger";
 
 // ---------------------------------------------------------------------------
@@ -69,6 +71,8 @@ function determineOutcome(
 // ---------------------------------------------------------------------------
 
 export async function captureAction(input: HookInput): Promise<HookOutput> {
+  let systemMessage: string | undefined;
+
   try {
     const toolName = input.tool_name ?? "unknown";
     const { actionType, filePath } = classifyAction(toolName, input.tool_input);
@@ -101,6 +105,28 @@ export async function captureAction(input: HookInput): Promise<HookOutput> {
     const projectPath = input.cwd ?? process.cwd();
     analyzeActionForDecisions(action, projectPath);
 
+    // Record metrics
+    const config = getConfig();
+    if (config.metrics.enabled) {
+      insertMetric(input.session_id, "tool_calls", 1);
+
+      // Check utilization and emit warnings
+      if (input.transcript_path) {
+        const util = estimateUtilization(input.transcript_path);
+        insertMetric(input.session_id, "context_utilization", util.utilization);
+
+        if (util.utilization >= config.metrics.criticalUtilization) {
+          systemMessage =
+            `[AutoClaude] Context utilization is at ${(util.utilization * 100).toFixed(0)}%. ` +
+            `Consider running /compact to free up context space.`;
+        } else if (util.utilization >= config.metrics.warnUtilization) {
+          systemMessage =
+            `[AutoClaude] Context utilization is at ${(util.utilization * 100).toFixed(0)}%. ` +
+            `Approaching capacity — be concise to extend the session.`;
+        }
+      }
+    }
+
     logger.debug(
       `[capture-action] Recorded ${actionType} (${outcome}) for session ${input.session_id}`,
     );
@@ -109,5 +135,8 @@ export async function captureAction(input: HookInput): Promise<HookOutput> {
     logger.error(`[capture-action] ${msg}`);
   }
 
+  if (systemMessage) {
+    return { continue: true, hookSpecificOutput: { systemMessage } };
+  }
   return { continue: true };
 }

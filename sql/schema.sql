@@ -125,5 +125,24 @@ CREATE TRIGGER IF NOT EXISTS learnings_au AFTER UPDATE ON learnings BEGIN
     INSERT INTO learnings_fts(rowid, learning, context) VALUES (NEW.rowid, NEW.learning, NEW.context);
 END;
 
+-- User prompts (from UserPromptSubmit hook)
+CREATE TABLE IF NOT EXISTS prompts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT NOT NULL,
+    project_path TEXT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    prompt TEXT NOT NULL,
+    FOREIGN KEY (session_id) REFERENCES sessions(id)
+);
+
+-- FTS index for prompt similarity detection
+CREATE VIRTUAL TABLE IF NOT EXISTS prompts_fts USING fts5(
+    prompt, content='prompts', content_rowid='rowid'
+);
+
+CREATE TRIGGER IF NOT EXISTS prompts_ai AFTER INSERT ON prompts BEGIN
+    INSERT INTO prompts_fts(rowid, prompt) VALUES (NEW.rowid, NEW.prompt);
+END;
+
 -- Enable WAL mode for better concurrent access
 PRAGMA journal_mode=WAL;
