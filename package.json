@@ -1,0 +1,30 @@
+{
+  "name": "autoclaude",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/cli/index.js",
+  "bin": {
+    "autoclaude": "bin/autoclaude"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "rebuild": "npm run clean && npm run build",
+    "start": "node dist/cli/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.3",
+    "better-sqlite3": "^12.6.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^25.2.0",
+    "esbuild": "^0.27.2",
+    "typescript": "^5.9.3"
+  }
+}

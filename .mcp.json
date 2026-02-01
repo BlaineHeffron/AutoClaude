@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "autoclaude-memory": {
+      "command": "node",
+      "args": ["${PLUGIN_DIR}/dist/mcp/index.js"],
+      "env": {
+        "AUTOCLAUDE_DB": "${HOME}/.autoclaude/memory.db"
+      }
+    }
+  }
+}
