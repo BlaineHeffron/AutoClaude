@@ -200,6 +200,33 @@ export function getRecentSessions(
   }
 }
 
+/**
+ * Returns recent sessions that have a non-null summary, suitable for
+ * context injection. Avoids returning empty/in-progress sessions.
+ */
+export function getRecentSummarizedSessions(
+  projectPath: string,
+  limit: number = 3,
+): SessionRecord[] {
+  const d = db();
+  if (!d) return [];
+
+  try {
+    return d
+      .prepare(
+        `SELECT * FROM sessions
+         WHERE project_path = ?
+           AND summary IS NOT NULL
+           AND summary != ''
+         ORDER BY started_at DESC
+         LIMIT ?`,
+      )
+      .all(projectPath, limit) as SessionRecord[];
+  } catch {
+    return [];
+  }
+}
+
 // ===========================================================================
 // Actions
 // ===========================================================================
@@ -455,6 +482,50 @@ export function getLatestSnapshot(
          LIMIT 1`,
       )
       .get(sessionId) as SnapshotRecord | undefined;
+    return row ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Returns the most recent snapshot for any session in the given project,
+ * excluding snapshots from the specified session. Used to restore context
+ * after compaction or on resume.
+ */
+export function getLatestProjectSnapshot(
+  projectPath: string,
+  excludeSessionId?: string,
+): SnapshotRecord | null {
+  const d = db();
+  if (!d) return null;
+
+  try {
+    let row: SnapshotRecord | undefined;
+
+    if (excludeSessionId) {
+      row = d
+        .prepare(
+          `SELECT s.* FROM snapshots s
+           JOIN sessions sess ON s.session_id = sess.id
+           WHERE sess.project_path = ?
+             AND s.session_id != ?
+           ORDER BY s.timestamp DESC
+           LIMIT 1`,
+        )
+        .get(projectPath, excludeSessionId) as SnapshotRecord | undefined;
+    } else {
+      row = d
+        .prepare(
+          `SELECT s.* FROM snapshots s
+           JOIN sessions sess ON s.session_id = sess.id
+           WHERE sess.project_path = ?
+           ORDER BY s.timestamp DESC
+           LIMIT 1`,
+        )
+        .get(projectPath) as SnapshotRecord | undefined;
+    }
+
     return row ?? null;
   } catch {
     return null;

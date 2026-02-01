@@ -3,8 +3,9 @@ import {
   getSession,
   getSessionActions,
   insertSnapshot,
+  updateSession,
 } from "../core/memory";
-import type { ActionRecord } from "../core/memory";
+import { summarizeSession, collectUniqueFiles, countByType } from "../core/summarizer";
 import { logger } from "../util/logger";
 
 // ---------------------------------------------------------------------------
@@ -15,13 +16,8 @@ import { logger } from "../util/logger";
  * Build a human-readable progress summary from a list of actions,
  * e.g. "5 edits, 2 tests, 1 build".
  */
-function buildProgressSummary(actions: ActionRecord[]): string {
-  const counts: Record<string, number> = {};
-
-  for (const action of actions) {
-    const type = action.action_type ?? "other";
-    counts[type] = (counts[type] ?? 0) + 1;
-  }
+function buildProgressSummary(actions: import("../core/memory").ActionRecord[]): string {
+  const counts = countByType(actions);
 
   const parts: string[] = [];
   for (const [type, count] of Object.entries(counts)) {
@@ -29,21 +25,6 @@ function buildProgressSummary(actions: ActionRecord[]): string {
   }
 
   return parts.length > 0 ? parts.join(", ") : "no actions recorded";
-}
-
-/**
- * Extract unique file paths from actions as a JSON array string.
- */
-function extractWorkingFiles(actions: ActionRecord[]): string {
-  const files = new Set<string>();
-
-  for (const action of actions) {
-    if (action.file_path) {
-      files.add(action.file_path);
-    }
-  }
-
-  return JSON.stringify([...files]);
 }
 
 // ---------------------------------------------------------------------------
@@ -58,8 +39,9 @@ export async function handlePreCompact(input: HookInput): Promise<HookOutput> {
 
     const currentTask = session?.task_description ?? null;
     const progressSummary = buildProgressSummary(actions);
-    const workingFiles = extractWorkingFiles(actions);
+    const workingFiles = JSON.stringify(collectUniqueFiles(actions));
 
+    // Save a snapshot for post-compact restoration
     insertSnapshot({
       session_id: sessionId,
       trigger: "pre-compact",
@@ -68,6 +50,13 @@ export async function handlePreCompact(input: HookInput): Promise<HookOutput> {
       open_questions: JSON.stringify([]),
       next_steps: JSON.stringify([]),
       working_files: workingFiles,
+    });
+
+    // Also persist a partial summary so the next session can reference it
+    const summary = summarizeSession(actions);
+    updateSession(sessionId, {
+      summary,
+      files_modified: workingFiles,
     });
 
     logger.info(
