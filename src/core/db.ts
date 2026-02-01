@@ -4,17 +4,25 @@ import * as path from 'path';
 import * as os from 'os';
 
 const AUTOCLAUDE_DIR = path.join(os.homedir(), '.autoclaude');
-const DB_PATH = path.join(AUTOCLAUDE_DIR, 'memory.db');
 const SCHEMA_PATH = path.join(__dirname, '..', '..', 'sql', 'schema.sql');
 
 let db: DatabaseType | null = null;
 
 /**
- * Ensures the ~/.autoclaude directory exists, creating it if necessary.
+ * Returns the database file path. Reads AUTOCLAUDE_DB env var lazily
+ * (at call time, not module load time) so tests can override it.
  */
-function ensureAutoclaudeDir(): void {
-  if (!fs.existsSync(AUTOCLAUDE_DIR)) {
-    fs.mkdirSync(AUTOCLAUDE_DIR, { recursive: true });
+function getDbPath(): string {
+  return process.env.AUTOCLAUDE_DB || path.join(AUTOCLAUDE_DIR, 'memory.db');
+}
+
+/**
+ * Ensures the parent directory for the database file exists.
+ */
+function ensureDbDir(): void {
+  const dir = path.dirname(getDbPath());
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
   }
 }
 
@@ -79,9 +87,10 @@ export function getDb(): DatabaseType | null {
   }
 
   try {
-    ensureAutoclaudeDir();
+    ensureDbDir();
 
-    db = new Database(DB_PATH);
+    const dbPath = getDbPath();
+    db = new Database(dbPath);
 
     // Enable WAL mode before applying schema for better concurrent access.
     // This is idempotent - if already in WAL mode, this is a no-op.
@@ -92,7 +101,7 @@ export function getDb(): DatabaseType | null {
     return db;
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
-    console.error(`[autoclaude] Failed to initialize database at ${DB_PATH}: ${message}`);
+    console.error(`[autoclaude] Failed to initialize database at ${getDbPath()}: ${message}`);
 
     // Clean up partial state
     if (db !== null) {

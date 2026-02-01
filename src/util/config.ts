@@ -3,31 +3,53 @@ import * as path from "path";
 import * as os from "os";
 
 export interface AutoClaudeConfig {
+  /** Context injection settings — controls what gets injected on session start. */
   injection: {
+    /** Whether context injection is enabled at all. Default: true. */
     enabled: boolean;
+    /** Maximum token budget for injected context. Range: 100–10000. Default: 1000. */
     maxTokens: number;
+    /** Number of recent sessions to include in injection. Range: 0–20. Default: 3. */
     includeSessions: number;
+    /** Include active architectural decisions. Default: true. */
     includeDecisions: boolean;
+    /** Include learnings (gotchas, patterns). Default: true. */
     includeLearnings: boolean;
+    /** Include pre-compaction snapshots on resume/compact. Default: true. */
     includeSnapshot: boolean;
   };
+  /** Action capture settings — controls which tool uses are recorded. */
   capture: {
+    /** Whether action capture is enabled. Default: true. */
     enabled: boolean;
+    /** Whether to capture actions asynchronously (non-blocking). Default: true. */
     asyncActions: boolean;
+    /** List of tool names to capture (matched against hook PostToolUse). Default: ["Edit", "Write", "Bash"]. */
     captureTools: string[];
   };
+  /** Metrics and utilization tracking settings. */
   metrics: {
+    /** Whether metrics collection is enabled. Default: true. */
     enabled: boolean;
+    /** Context utilization threshold (0–1) for a warning message. Default: 0.55. */
     warnUtilization: number;
+    /** Context utilization threshold (0–1) for a critical/compact message. Default: 0.7. */
     criticalUtilization: number;
   };
+  /** Relevance decay settings for learnings garbage collection. */
   decay: {
+    /** Daily relevance decay rate (0–1). Applied each time gc runs. Default: 0.05. */
     dailyRate: number;
+    /** Relevance boost when a learning is referenced. Default: 0.1. */
     referenceBoost: number;
+    /** Minimum relevance score before a learning is garbage-collected. Range: 0–1. Default: 0.1. */
     gcThreshold: number;
   };
+  /** Logging configuration. */
   logging: {
+    /** Log level: "debug", "info", "warn", or "error". Default: "info". */
     level: string;
+    /** Path to log file. Supports ~ for home directory. Default: "~/.autoclaude/logs/autoclaude.log". */
     file: string;
   };
 }
@@ -96,13 +118,88 @@ function deepMerge<T extends Record<string, unknown>>(
   return result;
 }
 
+/**
+ * Validates config values are within expected ranges.
+ * Logs warnings and resets to defaults for any out-of-range values.
+ */
+function validateConfig(config: AutoClaudeConfig): AutoClaudeConfig {
+  const warnings: string[] = [];
+
+  // injection.maxTokens: 100–10000
+  if (config.injection.maxTokens < 100 || config.injection.maxTokens > 10000) {
+    warnings.push(`injection.maxTokens=${config.injection.maxTokens} out of range [100, 10000], using default ${DEFAULT_CONFIG.injection.maxTokens}`);
+    config.injection.maxTokens = DEFAULT_CONFIG.injection.maxTokens;
+  }
+
+  // injection.includeSessions: 0–20
+  if (config.injection.includeSessions < 0 || config.injection.includeSessions > 20) {
+    warnings.push(`injection.includeSessions=${config.injection.includeSessions} out of range [0, 20], using default ${DEFAULT_CONFIG.injection.includeSessions}`);
+    config.injection.includeSessions = DEFAULT_CONFIG.injection.includeSessions;
+  }
+
+  // metrics.warnUtilization: 0–1
+  if (config.metrics.warnUtilization < 0 || config.metrics.warnUtilization > 1) {
+    warnings.push(`metrics.warnUtilization=${config.metrics.warnUtilization} out of range [0, 1], using default ${DEFAULT_CONFIG.metrics.warnUtilization}`);
+    config.metrics.warnUtilization = DEFAULT_CONFIG.metrics.warnUtilization;
+  }
+
+  // metrics.criticalUtilization: 0–1
+  if (config.metrics.criticalUtilization < 0 || config.metrics.criticalUtilization > 1) {
+    warnings.push(`metrics.criticalUtilization=${config.metrics.criticalUtilization} out of range [0, 1], using default ${DEFAULT_CONFIG.metrics.criticalUtilization}`);
+    config.metrics.criticalUtilization = DEFAULT_CONFIG.metrics.criticalUtilization;
+  }
+
+  // warn should be less than critical
+  if (config.metrics.warnUtilization >= config.metrics.criticalUtilization) {
+    warnings.push(`metrics.warnUtilization (${config.metrics.warnUtilization}) >= criticalUtilization (${config.metrics.criticalUtilization}), using defaults`);
+    config.metrics.warnUtilization = DEFAULT_CONFIG.metrics.warnUtilization;
+    config.metrics.criticalUtilization = DEFAULT_CONFIG.metrics.criticalUtilization;
+  }
+
+  // decay.dailyRate: 0–1
+  if (config.decay.dailyRate < 0 || config.decay.dailyRate > 1) {
+    warnings.push(`decay.dailyRate=${config.decay.dailyRate} out of range [0, 1], using default ${DEFAULT_CONFIG.decay.dailyRate}`);
+    config.decay.dailyRate = DEFAULT_CONFIG.decay.dailyRate;
+  }
+
+  // decay.referenceBoost: 0–1
+  if (config.decay.referenceBoost < 0 || config.decay.referenceBoost > 1) {
+    warnings.push(`decay.referenceBoost=${config.decay.referenceBoost} out of range [0, 1], using default ${DEFAULT_CONFIG.decay.referenceBoost}`);
+    config.decay.referenceBoost = DEFAULT_CONFIG.decay.referenceBoost;
+  }
+
+  // decay.gcThreshold: 0–1
+  if (config.decay.gcThreshold < 0 || config.decay.gcThreshold > 1) {
+    warnings.push(`decay.gcThreshold=${config.decay.gcThreshold} out of range [0, 1], using default ${DEFAULT_CONFIG.decay.gcThreshold}`);
+    config.decay.gcThreshold = DEFAULT_CONFIG.decay.gcThreshold;
+  }
+
+  // logging.level: must be valid
+  const validLevels = ["debug", "info", "warn", "error"];
+  if (!validLevels.includes(config.logging.level)) {
+    warnings.push(`logging.level="${config.logging.level}" invalid, using default "${DEFAULT_CONFIG.logging.level}"`);
+    config.logging.level = DEFAULT_CONFIG.logging.level;
+  }
+
+  if (warnings.length > 0) {
+    for (const w of warnings) {
+      console.error(`[autoclaude] config warning: ${w}`);
+    }
+  }
+
+  return config;
+}
+
 export function getConfig(): AutoClaudeConfig {
   try {
     const raw = fs.readFileSync(CONFIG_PATH, "utf-8");
     const userConfig = JSON.parse(raw) as Record<string, unknown>;
-    return deepMerge(DEFAULT_CONFIG as unknown as Record<string, unknown>, userConfig) as unknown as AutoClaudeConfig;
+    const merged = deepMerge(DEFAULT_CONFIG as unknown as Record<string, unknown>, userConfig) as unknown as AutoClaudeConfig;
+    return validateConfig(merged);
   } catch {
     // File doesn't exist or is invalid JSON - return defaults
     return { ...DEFAULT_CONFIG };
   }
 }
+
+export { DEFAULT_CONFIG };
