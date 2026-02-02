@@ -58,6 +58,8 @@ import {
   generateConsoleReport,
   writeJsonReport,
 } from './report';
+import { buildInjectionContext } from '../src/core/injector';
+import { getConfig } from '../src/util/config';
 import type {
   BenchmarkReport,
   GroundTruth,
@@ -93,12 +95,27 @@ async function main(): Promise<void> {
 
   console.log('PHASE 1: Seeding database with ground truth...');
   const groundTruth: GroundTruth = seedBenchmarkDb(PROJECT_DIR);
+
+  // Build injection context from the seeded DB BEFORE closing it.
+  // This simulates what the SessionStart hook would inject in a real session.
+  // We need this because --print mode does not fire plugin hooks.
+  const config = getConfig();
+  const injectionContext = buildInjectionContext(
+    PROJECT_DIR,
+    'e2e-current',
+    'compact', // Use 'compact' source to include snapshot section
+    config,
+  );
+
   closeSeedDb();
   console.log(
     `  Seeded: ${groundTruth.sessions.length} sessions, ` +
       `${groundTruth.decisions.length} decisions, ` +
       `${groundTruth.learnings.length} learnings, ` +
       `${groundTruth.priorPrompts.length} prior prompts`,
+  );
+  console.log(
+    `  Injection context: ${injectionContext ? `${injectionContext.length} chars` : 'empty (!)'}`,
   );
   console.log('');
 
@@ -127,6 +144,7 @@ async function main(): Promise<void> {
     maxBudgetUsd: 0.15,
     delayMs,
     cwd: PROJECT_DIR,
+    injectionContext: injectionContext || undefined,
   };
 
   const collectedResults: Array<{

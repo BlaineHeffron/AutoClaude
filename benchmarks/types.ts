@@ -32,6 +32,7 @@ export interface ClaudeJsonOutput {
   result: string;
   session_id?: string;
   cost_usd?: number;
+  total_cost_usd?: number;
   duration_ms?: number;
   duration_api_ms?: number;
   num_turns?: number;

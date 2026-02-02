@@ -35,7 +35,7 @@ function runClaudeJudge(
       prompt,
     ];
 
-    execFile(
+    const proc = execFile(
       'claude',
       args,
       {
@@ -53,6 +53,9 @@ function runClaudeJudge(
         resolve(stdout);
       },
     );
+
+    // Close stdin so claude --print doesn't wait for piped input
+    proc.stdin?.end();
   });
 }
 

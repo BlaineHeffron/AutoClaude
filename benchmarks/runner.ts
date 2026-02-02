@@ -22,6 +22,12 @@ export interface RunnerConfig {
   delayMs: number;
   /** Working directory for claude invocations. */
   cwd: string;
+  /**
+   * Pre-built injection context to prepend to prompts for the "with" arm.
+   * Needed because --print mode does not fire plugin hooks, so we inject
+   * the memory context directly into the prompt.
+   */
+  injectionContext?: string;
 }
 
 const DEFAULT_CONFIG: Partial<RunnerConfig> = {
@@ -87,7 +93,7 @@ function parseClaudeOutput(stdout: string): {
     return {
       text: parsed.result ?? '',
       json: parsed,
-      cost: parsed.cost_usd ?? 0,
+      cost: parsed.total_cost_usd ?? parsed.cost_usd ?? 0,
     };
   } catch {
     // Fallback: treat as plain text (--output-format json may have failed)
@@ -104,10 +110,14 @@ export async function runWithAutoclaude(
 ): Promise<ArmResponse> {
   const cfg = { ...DEFAULT_CONFIG, ...config };
 
+  // Prepend injection context to the prompt so Claude has memory context.
+  // This is necessary because --print mode does not fire plugin hooks.
+  const fullPrompt = cfg.injectionContext
+    ? `<autoclaude-context>\n${cfg.injectionContext}\n</autoclaude-context>\n\n${scenario.prompt}`
+    : scenario.prompt;
+
   const args = [
     '--print',
-    '--plugin-dir',
-    cfg.pluginDir,
     '--setting-sources',
     '',
     '--model',
@@ -117,7 +127,7 @@ export async function runWithAutoclaude(
     String(cfg.maxBudgetUsd),
     '--output-format',
     'json',
-    scenario.prompt,
+    fullPrompt,
   ];
 
   const env: Record<string, string> = {
