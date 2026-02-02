@@ -31,50 +31,50 @@ extensions:
 defaultTest:
   assert:
     # ── LLM-as-judge dimensions (require ANTHROPIC_API_KEY) ─────────
-    # Uncomment the block below to enable LLM grading. Requires:
+    # To enable LLM grading, set ANTHROPIC_API_KEY and uncomment below:
     #   export ANTHROPIC_API_KEY=sk-ant-...
     #   npm run bench:e2e
     #
-    # - type: llm-rubric
-    #   metric: session_awareness
-    #   provider: anthropic:messages:claude-sonnet-4-20250514
-    #   value: |
-    #     Score session awareness on a 0.0-1.0 scale. Does the response reference
-    #     or demonstrate knowledge of prior session context?
-    #     0.0 = no awareness. 1.0 = specific, accurate references to prior sessions.
-    #     Ground truth: {{groundTruthDoc}}
-    # - type: llm-rubric
-    #   metric: factual_accuracy
-    #   provider: anthropic:messages:claude-sonnet-4-20250514
-    #   value: |
-    #     Score factual accuracy on a 0.0-1.0 scale. Are the decisions, learnings,
-    #     and facts mentioned actually correct per the ground truth?
-    #     0.0 = fabricated facts. 1.0 = all facts match ground truth.
-    #     Ground truth: {{groundTruthDoc}}
-    # - type: llm-rubric
-    #   metric: helpfulness
-    #   provider: anthropic:messages:claude-sonnet-4-20250514
-    #   value: |
-    #     Score helpfulness on a 0.0-1.0 scale. Is the response actionable and
-    #     useful for the user's question?
-    #     0.0 = useless. 1.0 = highly actionable, directly addresses the need.
-    #     Ground truth: {{groundTruthDoc}}
-    # - type: llm-rubric
-    #   metric: hallucination_resistance
-    #   provider: anthropic:messages:claude-sonnet-4-20250514
-    #   value: |
-    #     Score hallucination resistance on a 0.0-1.0 scale. Does the response
-    #     avoid fabricating specific details not in the ground truth?
-    #     0.0 = heavy hallucination. 1.0 = no hallucination, only verifiable claims.
-    #     Ground truth: {{groundTruthDoc}}
-    # - type: llm-rubric
-    #   metric: overall_quality
-    #   provider: anthropic:messages:claude-sonnet-4-20250514
-    #   value: |
-    #     Score overall quality on a 0.0-1.0 scale. Holistic assessment considering
-    #     session awareness, accuracy, helpfulness, and hallucination resistance.
-    #     0.0 = terrible. 1.0 = excellent, well-informed, accurate, actionable.
-    #     Ground truth: {{groundTruthDoc}}
+    - type: llm-rubric
+      metric: session_awareness
+      provider: anthropic:messages:claude-sonnet-4-20250514
+      value: |
+        Score session awareness on a 0.0-1.0 scale. Does the response reference
+        or demonstrate knowledge of prior session context?
+        0.0 = no awareness. 1.0 = specific, accurate references to prior sessions.
+        Ground truth: {{groundTruthDoc}}
+    - type: llm-rubric
+      metric: factual_accuracy
+      provider: anthropic:messages:claude-sonnet-4-20250514
+      value: |
+        Score factual accuracy on a 0.0-1.0 scale. Are the decisions, learnings,
+        and facts mentioned actually correct per the ground truth?
+        0.0 = fabricated facts. 1.0 = all facts match ground truth.
+        Ground truth: {{groundTruthDoc}}
+    - type: llm-rubric
+      metric: helpfulness
+      provider: anthropic:messages:claude-sonnet-4-20250514
+      value: |
+        Score helpfulness on a 0.0-1.0 scale. Is the response actionable and
+        useful for the user's question?
+        0.0 = useless. 1.0 = highly actionable, directly addresses the need.
+        Ground truth: {{groundTruthDoc}}
+    - type: llm-rubric
+      metric: hallucination_resistance
+      provider: anthropic:messages:claude-sonnet-4-20250514
+      value: |
+        Score hallucination resistance on a 0.0-1.0 scale. Does the response
+        avoid fabricating specific details not in the ground truth?
+        0.0 = heavy hallucination. 1.0 = no hallucination, only verifiable claims.
+        Ground truth: {{groundTruthDoc}}
+    - type: llm-rubric
+      metric: overall_quality
+      provider: anthropic:messages:claude-sonnet-4-20250514
+      value: |
+        Score overall quality on a 0.0-1.0 scale. Holistic assessment considering
+        session awareness, accuracy, helpfulness, and hallucination resistance.
+        0.0 = terrible. 1.0 = excellent, well-informed, accurate, actionable.
+        Ground truth: {{groundTruthDoc}}
 
     # ── Keyword Coverage (deterministic, no API key required) ───────
     - type: javascript
