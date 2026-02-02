@@ -7,5 +7,7 @@
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
+| #729 | 8:33 PM | ✅ | Documentation Updates Across 7 Files with 379 Additions | ~371 |
+| #679 | 8:20 PM | 🔵 | SQLite Database Schema with FTS5 Search and Automatic Triggers | ~555 |
 | #23 | 3:00 PM | 🟣 | SQLite Database Schema Implemented | ~574 |
 </claude-mem-context>

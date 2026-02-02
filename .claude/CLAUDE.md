@@ -1,3 +1,27 @@
+# AutoClaude — Project Instructions
+
+## What This Is
+
+AutoClaude is a Claude Code plugin that provides persistent memory across sessions.
+Self-contained plugin (not a wrapper). Install: `claude plugins add ./`.
+
+## Key Facts
+
+- 23 TypeScript source files across 4 layers (cli, core, mcp, util)
+- 19 test files, 123 tests, Node.js built-in test runner, real SQLite (no mocks)
+- Hooks always return `{continue: true}` — never block Claude
+- Data stored in `~/.autoclaude/memory.db` (SQLite, WAL mode)
+- Token budget priority: snapshot > decisions > learnings > sessions
+- FTS5 indexes on sessions, decisions, learnings, prompts
+
+## Commands
+
+```bash
+npm run build   # production build (esbuild)
+npm test        # build tests + run all (includes benchmarks)
+npm run lint    # ESLint
+```
+
 <claude-mem-context>
 # Recent Activity
 
@@ -7,5 +31,6 @@
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
+| #729 | 8:33 PM | ✅ | Documentation Updates Across 7 Files with 379 Additions | ~371 |
 | #11 | 2:58 PM | 🔵 | AutoClaude Project Status Assessment | ~633 |
 </claude-mem-context>

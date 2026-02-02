@@ -7,6 +7,17 @@
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
+| #729 | 8:33 PM | ✅ | Documentation Updates Across 7 Files with 379 Additions | ~371 |
+| #715 | 8:29 PM | 🔵 | Complete End-to-End Context Injection Flow Documented by Explore Agent | ~636 |
+| #709 | 8:26 PM | 🔵 | CLI Router with Safe Fallback and Dynamic Handler Loading | ~464 |
+| #706 | 8:25 PM | 🔵 | Hook Interface Contracts Define Input/Output for Claude Code Integration | ~457 |
+| #705 | " | 🔵 | Pre-Compact Handler Captures Full Session State Before Context Reduction | ~475 |
+| #696 | 8:24 PM | 🔵 | Action Capture Classifies Tools, Detects Outcomes, and Triggers Analysis | ~479 |
+| #693 | " | 🔵 | Session Stop Hook Generates Summary, Extracts Learnings, and Finalizes Metrics | ~438 |
+| #690 | 8:23 PM | 🔵 | Session Start Hook Performs GC, Metrics, and Context Injection | ~489 |
+| #658 | 8:18 PM | 🟣 | Hook Input/Output Type Contracts Define Claude Code Integration | ~546 |
+| #657 | " | 🟣 | Complete Database Backup Implementation with WAL-Safe Copying | ~546 |
+| #650 | 8:16 PM | 🟣 | Complete Export Handler Implementation with Three-Table JSON Export | ~464 |
 | #627 | 8:14 PM | 🟣 | Database Export Command Implemented | ~364 |
 | #625 | " | 🟣 | Database Backup Command Implemented | ~370 |
 | #67 | 3:08 PM | 🟣 | SessionEnd Hook Handler Implemented | ~492 |
