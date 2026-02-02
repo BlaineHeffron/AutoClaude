@@ -373,6 +373,52 @@ The benchmark suite (`tests/benchmark.test.ts`) seeds a real SQLite database wit
 
 All benchmarks run as part of the standard test suite (26 assertions, ~63ms execution time).
 
+### E2E Benchmarks (promptfoo)
+
+We also run end-to-end benchmarks using [promptfoo](https://www.promptfoo.dev/) that compare AutoClaude-augmented Claude against vanilla Claude Code across 8 real-world scenarios. These call `claude --print` with and without injected memory context, then evaluate the responses.
+
+```bash
+npm run bench:e2e          # full run (8 scenarios × 2 providers)
+npm run bench:e2e:view     # open interactive web UI to explore results
+```
+
+#### E2E Results (Keyword Coverage)
+
+Each scenario checks whether the response contains expected domain-specific keywords. Scores range from 0.0 (no keywords found) to 1.0 (all keywords found).
+
+| Scenario | Category | With AutoClaude | Without | Winner |
+|----------|----------|:---:|:---:|--------|
+| Recall last session | Session Continuity | **1.00** | 0.00 | AutoClaude |
+| Continue auth feature | Session Continuity | **0.75** | 0.25 | AutoClaude |
+| Architecture decisions | Project Knowledge | **1.00** | 0.00 | AutoClaude |
+| Known gotchas | Project Knowledge | **1.00** | 0.00 | AutoClaude |
+| Database setup | Project Knowledge | **1.00** | 0.40 | AutoClaude |
+| Tech stack overview | Cold Start | **1.00** | 0.00 | AutoClaude |
+| Detect duplicate TS fix | Repeated Instruction | 0.00 | 0.00 | Tie |
+| Detect duplicate test req | Repeated Instruction | 0.00 | 0.00 | Tie |
+
+**AutoClaude wins 6/8 scenarios.** The two ties are repeated-instruction detection, where neither arm flags the prompt as previously seen (this requires the MCP `search` tool, which `--print` mode doesn't invoke).
+
+#### LLM-as-Judge Grading (Optional)
+
+For richer evaluation across 5 dimensions (session awareness, factual accuracy, helpfulness, hallucination resistance, overall quality), enable the LLM-as-judge assertions:
+
+1. Uncomment the `llm-rubric` blocks in `benchmarks/promptfooconfig.yaml`
+2. Set your API key: `export ANTHROPIC_API_KEY=sk-ant-...`
+3. Run: `npm run bench:e2e`
+
+This uses Claude Sonnet as a grader with the seeded ground truth as reference. Results are cached on disk to avoid redundant API calls.
+
+#### Filtering Scenarios
+
+```bash
+# Run a single scenario
+npm run bench:e2e -- --filter-description "cont-1"
+
+# Run multiple scenarios
+npm run bench:e2e -- --filter-description "cont-1|know-1"
+```
+
 ## Data Storage
 
 All data is stored in `~/.autoclaude/memory.db` (SQLite with WAL mode). The database contains:

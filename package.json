@@ -14,7 +14,7 @@
     "start": "node dist/cli/index.js",
     "test": "node --test dist/tests/*.test.js",
     "pretest": "npx esbuild tests/*.test.ts --bundle --platform=node --format=cjs --outdir=dist/tests --external:better-sqlite3 --sourcemap",
-    "bench:e2e:build": "npx esbuild benchmarks/providers/*.ts benchmarks/hooks/setup.ts benchmarks/ground-truth.ts benchmarks/seed.ts --bundle --platform=node --format=cjs --outdir=dist/benchmarks --external:better-sqlite3 --external:promptfoo --sourcemap",
+    "bench:e2e:build": "mkdir -p dist/sql && cp sql/schema.sql dist/sql/ && npx esbuild benchmarks/providers/*.ts benchmarks/hooks/setup.ts benchmarks/ground-truth.ts benchmarks/seed.ts --bundle --platform=node --format=cjs --outdir=dist/benchmarks --external:better-sqlite3 --external:promptfoo --sourcemap",
     "bench:e2e": "npm run bench:e2e:build && npx promptfoo eval -c benchmarks/promptfooconfig.yaml",
     "bench:e2e:view": "npx promptfoo view",
     "lint": "eslint src/ tests/",
