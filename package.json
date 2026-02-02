@@ -14,7 +14,9 @@
     "start": "node dist/cli/index.js",
     "test": "node --test dist/tests/*.test.js",
     "pretest": "npx esbuild tests/*.test.ts --bundle --platform=node --format=cjs --outdir=dist/tests --external:better-sqlite3 --sourcemap",
-    "bench:e2e": "npx esbuild benchmarks/e2e-comparison.ts --bundle --platform=node --format=cjs --outfile=dist/benchmarks/e2e-comparison.js --external:better-sqlite3 --sourcemap && node dist/benchmarks/e2e-comparison.js",
+    "bench:e2e:build": "npx esbuild benchmarks/providers/*.ts benchmarks/hooks/setup.ts benchmarks/ground-truth.ts benchmarks/seed.ts --bundle --platform=node --format=cjs --outdir=dist/benchmarks --external:better-sqlite3 --external:promptfoo --sourcemap",
+    "bench:e2e": "npm run bench:e2e:build && npx promptfoo eval -c benchmarks/promptfooconfig.yaml",
+    "bench:e2e:view": "npx promptfoo view",
     "lint": "eslint src/ tests/",
     "format": "prettier --write src/ tests/",
     "prepare": "husky"
@@ -49,6 +51,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "prettier": "^3.8.1",
+    "promptfoo": "^0.120.19",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.54.0"
   }

@@ -1,0 +1,186 @@
+# AutoClaude E2E Benchmark — promptfoo configuration
+#
+# Compares "with-autoclaude" (memory-augmented) vs "without-autoclaude"
+# (vanilla Claude Code) across 8 scenarios in 4 categories.
+#
+# Usage:
+#   npm run bench:e2e                            # full run
+#   npm run bench:e2e -- --filter-description "cont-1"  # single scenario
+#   npm run bench:e2e:view                       # open web UI
+
+description: "AutoClaude E2E Benchmark"
+
+providers:
+  - id: file://../dist/benchmarks/providers/with-autoclaude.js
+    label: with-autoclaude
+    config:
+      model: sonnet
+      maxBudgetUsd: 0.15
+  - id: file://../dist/benchmarks/providers/without-autoclaude.js
+    label: without-autoclaude
+    config:
+      model: sonnet
+      maxBudgetUsd: 0.15
+
+prompts:
+  - "{{prompt}}"
+
+extensions:
+  - file://../dist/benchmarks/hooks/setup.js:beforeAll
+
+defaultTest:
+  options:
+    provider: anthropic:messages:claude-sonnet-4-20250514
+  assert:
+    # ── Dimension 1: Session Awareness ──────────────────────────────
+    - type: llm-rubric
+      metric: session_awareness
+      value: |
+        Score session awareness on a 0.0–1.0 scale.
+        Does the response reference or demonstrate knowledge of prior session context?
+        0.0 = no awareness of prior sessions whatsoever.
+        0.5 = vague or generic references to prior work.
+        1.0 = specific, accurate references to prior sessions/tasks.
+
+        Ground truth for this project:
+        {{groundTruthDoc}}
+
+    # ── Dimension 2: Factual Accuracy ───────────────────────────────
+    - type: llm-rubric
+      metric: factual_accuracy
+      value: |
+        Score factual accuracy on a 0.0–1.0 scale.
+        Are the decisions, learnings, and facts mentioned actually correct per the ground truth?
+        0.0 = fabricated or incorrect facts.
+        0.5 = some facts correct, some wrong or missing.
+        1.0 = all stated facts match the ground truth.
+
+        Ground truth for this project:
+        {{groundTruthDoc}}
+
+    # ── Dimension 3: Helpfulness ────────────────────────────────────
+    - type: llm-rubric
+      metric: helpfulness
+      value: |
+        Score helpfulness on a 0.0–1.0 scale.
+        Is the response actionable and useful for the user's question?
+        0.0 = useless, off-topic, or completely unhelpful.
+        0.5 = somewhat useful but incomplete or vague.
+        1.0 = highly actionable, directly addresses the user's need.
+
+        Ground truth for this project:
+        {{groundTruthDoc}}
+
+    # ── Dimension 4: Hallucination Resistance ───────────────────────
+    - type: llm-rubric
+      metric: hallucination_resistance
+      value: |
+        Score hallucination resistance on a 0.0–1.0 scale.
+        Does the response avoid fabricating specific details not in the ground truth?
+        0.0 = heavy hallucination, many invented specifics.
+        0.5 = some unverifiable claims mixed with accurate info.
+        1.0 = no hallucination, only verifiable claims or appropriate hedging.
+
+        Ground truth for this project:
+        {{groundTruthDoc}}
+
+    # ── Dimension 5: Overall Quality ────────────────────────────────
+    - type: llm-rubric
+      metric: overall_quality
+      value: |
+        Score overall quality on a 0.0–1.0 scale.
+        Holistic assessment considering session awareness, accuracy, helpfulness,
+        and hallucination resistance together.
+        0.0 = terrible response.
+        0.5 = adequate but unremarkable.
+        1.0 = excellent, well-informed, accurate, and actionable.
+
+        Ground truth for this project:
+        {{groundTruthDoc}}
+
+    # ── Keyword Coverage (deterministic) ────────────────────────────
+    - type: javascript
+      metric: keyword_coverage
+      value: |
+        const keywords = String(context.vars.expectedKeywords || '').split(',').map(k => k.trim().toLowerCase()).filter(Boolean);
+        if (keywords.length === 0) return { pass: true, score: 1.0, reason: 'No keywords to check' };
+        const text = String(output).toLowerCase();
+        const hits = keywords.filter(k => text.includes(k));
+        const score = hits.length / keywords.length;
+        return {
+          pass: score >= 0.3,
+          score,
+          reason: `${hits.length}/${keywords.length} keywords found: [${hits.join(', ')}]`
+        };
+
+# ── Test Cases (8 scenarios, 4 categories) ──────────────────────────
+
+tests:
+  # ── Session Continuity ────────────────────────────────────────────
+  - description: "cont-1: Recall last session"
+    vars:
+      prompt: "What were we working on in the last session?"
+      category: session-continuity
+      scenarioDescription: "Tests whether AutoClaude recalls the most recent session snapshot."
+      expectedKeywords: "user registration,email verification,API endpoints,form validation"
+
+  - description: "cont-2: Continue auth feature"
+    vars:
+      prompt: "Continue where we left off on the auth feature. What's next?"
+      category: session-continuity
+      scenarioDescription: "Tests whether AutoClaude can surface next-steps from the snapshot."
+      expectedKeywords: "email verification service,rate limiting,integration tests,JWT"
+
+  # ── Project Knowledge ─────────────────────────────────────────────
+  - description: "know-1: Architecture decisions"
+    vars:
+      prompt: "What architecture decisions have we made?"
+      category: project-knowledge
+      scenarioDescription: "Tests whether AutoClaude surfaces stored architecture decisions."
+      expectedKeywords: "JWT,RS256,Prisma,TailwindCSS,Vitest,Docker,multi-stage"
+
+  - description: "know-2: Known gotchas"
+    vars:
+      prompt: "What are the known gotchas in this codebase?"
+      category: project-knowledge
+      scenarioDescription: "Tests whether AutoClaude surfaces stored learnings/gotchas."
+      expectedKeywords: "httpOnly cookies,bcrypt,event loop,prisma generate,purge,ResponsiveContainer"
+
+  - description: "know-3: Database setup"
+    vars:
+      prompt: "What database setup are we using?"
+      category: project-knowledge
+      scenarioDescription: "Tests whether AutoClaude retrieves database-specific decisions and learnings."
+      expectedKeywords: "PostgreSQL,Prisma,connection pool,PgBouncer,migration"
+
+  # ── Cold Start ────────────────────────────────────────────────────
+  - description: "cold-1: Tech stack overview"
+    vars:
+      prompt: "I just joined this project. Give me a tech stack overview."
+      category: cold-start
+      scenarioDescription: "Tests whether AutoClaude can synthesize a project overview from stored context."
+      expectedKeywords: "JWT,PostgreSQL,Prisma,React,TailwindCSS,Vitest,Docker,GitHub Actions"
+
+  # ── Repeated Instruction ──────────────────────────────────────────
+  - description: "repeat-1: Detect duplicate TypeScript fix"
+    vars:
+      prompt: "Fix the TypeScript compilation errors in the auth module"
+      category: repeated-instruction
+      scenarioDescription: "Tests whether AutoClaude detects this was asked before and flags it."
+      expectedKeywords: "previously,already,prior,before,earlier,again"
+
+  - description: "repeat-2: Detect duplicate test request"
+    vars:
+      prompt: "Add unit tests for the user registration endpoint"
+      category: repeated-instruction
+      scenarioDescription: "Tests whether AutoClaude detects a duplicate instruction."
+      expectedKeywords: "previously,already,prior,before,earlier,again"
+
+# ── Eval settings ───────────────────────────────────────────────────
+
+evaluateOptions:
+  maxConcurrency: 1
+  delay: 2000
+  cache: true
+
+outputPath: benchmark-results/e2e-latest.json

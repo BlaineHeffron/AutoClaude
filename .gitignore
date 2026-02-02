@@ -5,3 +5,5 @@ dist/
 !bin/autoclaude
 !bin/autoclaude-mcp
 .DS_Store
+.promptfoo/
+benchmark-results/
