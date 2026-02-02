@@ -2,10 +2,11 @@
   "name": "autoclaude",
   "version": "1.0.0",
   "description": "Automated context management across Claude Code sessions - captures session state, persists decisions and learnings, injects relevant context on session start",
-  "author": "blaine",
-  "homepage": "https://github.com/blaine/autoclaude",
-  "repository": "https://github.com/blaine/autoclaude",
-  "bugs": "https://github.com/blaine/autoclaude/issues",
+  "author": {
+    "name": "blaine"
+  },
+  "homepage": "https://github.com/BlaineHeffron/autoclaude",
+  "repository": "https://github.com/BlaineHeffron/autoclaude",
   "license": "MIT",
   "keywords": [
     "claude-code",

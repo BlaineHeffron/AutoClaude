@@ -26,6 +26,7 @@ export interface HookInput {
 export interface HookOutput {
   continue: boolean;
   hookSpecificOutput?: {
+    hookEventName?: string;
     additionalContext?: string;
     systemMessage?: string;
   };

@@ -7,6 +7,8 @@
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
+| #894 | 9:18 PM | 🔵 | CLAUDE.md Files Exist in Both Source and Dist Directories | ~273 |
+| #873 | 9:06 PM | 🔵 | Autoclaude Token-Budgeted Context Injection | ~422 |
 | #729 | 8:33 PM | ✅ | Documentation Updates Across 7 Files with 379 Additions | ~371 |
 | #715 | 8:29 PM | 🔵 | Complete End-to-End Context Injection Flow Documented by Explore Agent | ~636 |
 | #687 | 8:22 PM | 🔵 | Priority-Based Context Injection with Token Budget Management | ~522 |

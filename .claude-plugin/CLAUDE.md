@@ -7,5 +7,6 @@
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
-| #632 | 8:14 PM | ✅ | Claude Code Plugin Manifest Configured for Marketplace | ~369 |
+| #776 | 8:49 PM | 🔵 | Autoclaude plugin CLAUDE.md documentation exists but is empty | ~201 |
+| #755 | 8:45 PM | 🔵 | autoclaude plugin provides automated context management and session memory persistence | ~334 |
 </claude-mem-context>

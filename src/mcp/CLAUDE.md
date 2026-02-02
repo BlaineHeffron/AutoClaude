@@ -7,5 +7,6 @@
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
+| #796 | 8:52 PM | 🔵 | Autoclaude MCP server implements four tools for memory management via Model Context Protocol | ~519 |
 | #707 | 8:25 PM | 🔵 | MCP Server Exposes Four Tools for Memory Search and Knowledge Recording | ~515 |
 </claude-mem-context>

@@ -7,6 +7,14 @@
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
+| #894 | 9:18 PM | 🔵 | CLAUDE.md Files Exist in Both Source and Dist Directories | ~273 |
+| #874 | 9:06 PM | 🔵 | Autoclaude SessionStart Hook Implementation | ~405 |
+| #811 | 8:55 PM | 🔴 | Implemented automatic hookEventName injection for all hook responses | ~393 |
+| #810 | " | ✅ | Added COMMAND_TO_EVENT mapping for hook event name resolution | ~369 |
+| #809 | " | 🔴 | Added hookEventName field to HookOutput interface | ~305 |
+| #802 | 8:53 PM | 🔵 | Hook input/output types define Claude Code hook protocol contract | ~485 |
+| #801 | " | 🔵 | SessionStart handler creates session, performs garbage collection, and injects context | ~507 |
+| #800 | " | 🔵 | Autoclaude CLI router handles eleven hook commands with safe fallback pattern | ~454 |
 | #729 | 8:33 PM | ✅ | Documentation Updates Across 7 Files with 379 Additions | ~371 |
 | #715 | 8:29 PM | 🔵 | Complete End-to-End Context Injection Flow Documented by Explore Agent | ~636 |
 | #709 | 8:26 PM | 🔵 | CLI Router with Safe Fallback and Dynamic Handler Loading | ~464 |

@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /**
  * CLI entry point for autoclaude.
  *
@@ -67,6 +65,19 @@ function parseHookInput(raw: string): HookInput {
     return {} as HookInput;
   }
 }
+
+/**
+ * Maps CLI command names to Claude Code hook event names.
+ * Claude Code requires hookSpecificOutput to include hookEventName.
+ */
+const COMMAND_TO_EVENT: Record<string, string> = {
+  'session-start': 'SessionStart',
+  'user-prompt': 'UserPromptSubmit',
+  'capture-action': 'PostToolUse',
+  'pre-compact': 'PreCompact',
+  'session-stop': 'Stop',
+  'session-end': 'SessionEnd',
+};
 
 /**
  * Routes the command to the appropriate handler module and returns its result.
@@ -164,6 +175,12 @@ async function main(): Promise<void> {
 
     // Route to handler
     output = await routeCommand(command, input);
+
+    // Inject hookEventName into hookSpecificOutput (required by Claude Code)
+    const eventName = COMMAND_TO_EVENT[command];
+    if (eventName && output.hookSpecificOutput) {
+      output.hookSpecificOutput.hookEventName = eventName;
+    }
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     logger.error(

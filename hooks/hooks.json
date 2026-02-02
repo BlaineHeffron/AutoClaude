@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${PLUGIN_DIR}/dist/cli/index.js session-start",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/dist/cli/index.js session-start",
             "timeout": 10000
           }
         ]
@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${PLUGIN_DIR}/dist/cli/index.js user-prompt",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/dist/cli/index.js user-prompt",
             "timeout": 5000
           }
         ]
@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${PLUGIN_DIR}/dist/cli/index.js capture-action",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/dist/cli/index.js capture-action",
             "timeout": 5000
           }
         ]
@@ -42,7 +42,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${PLUGIN_DIR}/dist/cli/index.js pre-compact",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/dist/cli/index.js pre-compact",
             "timeout": 15000
           }
         ]
@@ -54,7 +54,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${PLUGIN_DIR}/dist/cli/index.js session-stop",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/dist/cli/index.js session-stop",
             "timeout": 15000
           }
         ]
@@ -66,7 +66,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${PLUGIN_DIR}/dist/cli/index.js session-end",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/dist/cli/index.js session-end",
             "timeout": 10000
           }
         ]

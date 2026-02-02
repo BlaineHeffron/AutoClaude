@@ -7,5 +7,26 @@
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
+| #730 | 8:34 PM | 🔄 | Removed Unused Imports from Benchmark Test Suite | ~396 |
+| #718 | 8:30 PM | 🟣 | Comprehensive Benchmark Suite Created for AutoClaude Context Effectiveness Testing | ~886 |
+| #714 | 8:28 PM | 🔵 | Comprehensive Test Suite Analysis Completed by Explore Agent | ~553 |
+| #713 | " | 🔵 | Test Isolation Pattern Using Temporary Databases and Environment Variables | ~409 |
+| #708 | 8:26 PM | 🔵 | Prompt Similarity Detection Using FTS5 for Repeated Instruction Warning | ~431 |
+| #703 | 8:25 PM | 🔵 | MCP Server Data Layer Tests Validate Search, Recording, and Metrics APIs | ~446 |
+| #700 | 8:24 PM | 🔵 | Garbage Collection System with Relevance Decay and Threshold Pruning | ~402 |
+| #698 | " | 🔵 | Pre-Compact Handler Creates Snapshots and Updates Compaction Counter | ~337 |
+| #692 | 8:23 PM | 🔵 | Token Estimation and Budget-Aware Truncation Utilities | ~371 |
+| #691 | " | 🔵 | Injector Tests Verify Context Assembly and Token Budget Enforcement | ~392 |
+| #689 | 8:22 PM | 🔵 | Project-Wide Statistics Aggregation and Metrics Tracking | ~456 |
+| #688 | " | 🔵 | Analyzer Tests Validate Decision and Learning Extraction Logic | ~457 |
+| #682 | 8:21 PM | 🔵 | Session Lifecycle Management with CRUD Operations and Data Persistence | ~467 |
+| #678 | 8:20 PM | 🔵 | Configuration System with Validated Defaults and Range Constraints | ~190 |
+| #676 | " | 🔵 | Metrics System Tests Context Utilization Estimation and Tracking | ~417 |
+| #674 | " | 🟣 | Export Command Test Suite Created with 5 Test Cases Validating JSON Structure | ~539 |
 | #673 | 8:19 PM | 🟣 | Backup Command Test Suite Created with 3 Test Cases Validating Error Handling | ~518 |
+| #671 | " | 🟣 | Logger Test Suite Created with 8 Test Cases Validating Severity Filtering and Formatting | ~558 |
+| #668 | " | 🟣 | Token Estimation and Truncation Test Suite Created with 11 Test Cases | ~592 |
+| #666 | " | 🟣 | Comprehensive Analyzer Test Suite Created with 11 Test Cases | ~592 |
+| #660 | 8:18 PM | 🟣 | Capture Action Test Suite Validates Tool Classification and Error Detection | ~530 |
+| #659 | " | 🟣 | Database Test Suite Validates Schema and Connection Management | ~545 |
 </claude-mem-context>

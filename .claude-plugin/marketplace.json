@@ -1,0 +1,18 @@
+{
+  "name": "autoclaude",
+  "owner": {
+    "name": "blaine"
+  },
+  "metadata": {
+    "description": "AutoClaude context management plugin",
+    "homepage": "https://github.com/BlaineHeffron/autoclaude"
+  },
+  "plugins": [
+    {
+      "name": "autoclaude",
+      "version": "1.0.0",
+      "source": "./",
+      "description": "Automated context management across Claude Code sessions - captures session state, persists decisions and learnings, injects relevant context on session start"
+    }
+  ]
+}

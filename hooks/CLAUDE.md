@@ -7,7 +7,5 @@
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
-| #715 | 8:29 PM | 🔵 | Complete End-to-End Context Injection Flow Documented by Explore Agent | ~636 |
-| #712 | 8:28 PM | 🔵 | Hook Configuration Maps Six Lifecycle Events to CLI Commands with Timeouts | ~469 |
-| #711 | 8:27 PM | 🔵 | Hook Definitions Centralized in hooks/hooks.json File | ~319 |
+| #754 | 8:44 PM | 🔵 | Plugin hooks configuration references ${PLUGIN_DIR}/dist/cli/index.js for lifecycle events | ~423 |
 </claude-mem-context>
