@@ -1,7 +1,7 @@
-import type { HookInput, HookOutput } from "./types";
-import { searchMemory } from "../core/memory";
-import type { SearchResult } from "../core/memory";
-import { logger } from "../util/logger";
+import type { HookInput, HookOutput } from './types';
+import { searchMemory } from '../core/memory';
+import type { SearchResult } from '../core/memory';
+import { logger } from '../util/logger';
 
 // ---------------------------------------------------------------------------
 // Formatting
@@ -12,16 +12,16 @@ import { logger } from "../util/logger";
  */
 function formatResult(result: SearchResult, index: number): string {
   const sourceLabel =
-    result.source === "sessions"
-      ? "Session"
-      : result.source === "decisions"
-        ? "Decision"
-        : "Learning";
+    result.source === 'sessions'
+      ? 'Session'
+      : result.source === 'decisions'
+        ? 'Decision'
+        : 'Learning';
 
   // Replace HTML bold tags from FTS snippets with markdown bold
   const cleanSnippet = result.snippet
-    .replace(/<b>/g, "**")
-    .replace(/<\/b>/g, "**");
+    .replace(/<b>/g, '**')
+    .replace(/<\/b>/g, '**');
 
   return `${index + 1}. [${sourceLabel} #${result.id}] ${cleanSnippet}`;
 }
@@ -33,21 +33,23 @@ function formatResults(queryText: string, results: SearchResult[]): string {
   const lines: string[] = [];
 
   lines.push(`## Memory Search: "${queryText}"`);
-  lines.push("");
+  lines.push('');
 
   if (results.length === 0) {
-    lines.push("No results found.");
-    return lines.join("\n");
+    lines.push('No results found.');
+    return lines.join('\n');
   }
 
-  lines.push(`Found ${results.length} result${results.length !== 1 ? "s" : ""}:`);
-  lines.push("");
+  lines.push(
+    `Found ${results.length} result${results.length !== 1 ? 's' : ''}:`,
+  );
+  lines.push('');
 
   for (let i = 0; i < results.length; i++) {
     lines.push(formatResult(results[i], i));
   }
 
-  return lines.join("\n");
+  return lines.join('\n');
 }
 
 // ---------------------------------------------------------------------------
@@ -63,12 +65,12 @@ export async function handleQuery(
       return {
         continue: true,
         hookSpecificOutput: {
-          additionalContext: "Error: No search query provided.",
+          additionalContext: 'Error: No search query provided.',
         },
       };
     }
 
-    const results = searchMemory(queryText.trim(), "all", 10);
+    const results = searchMemory(queryText.trim(), 'all', 10);
     const formatted = formatResults(queryText, results);
 
     return {

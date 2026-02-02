@@ -1,6 +1,6 @@
-import * as fs from "fs";
-import * as path from "path";
-import * as os from "os";
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 
 export interface AutoClaudeConfig {
   /** Context injection settings — controls what gets injected on session start. */
@@ -66,7 +66,7 @@ const DEFAULT_CONFIG: AutoClaudeConfig = {
   capture: {
     enabled: true,
     asyncActions: true,
-    captureTools: ["Edit", "Write", "Bash"],
+    captureTools: ['Edit', 'Write', 'Bash'],
   },
   metrics: {
     enabled: true,
@@ -79,16 +79,16 @@ const DEFAULT_CONFIG: AutoClaudeConfig = {
     gcThreshold: 0.1,
   },
   logging: {
-    level: "info",
-    file: "~/.autoclaude/logs/autoclaude.log",
+    level: 'info',
+    file: '~/.autoclaude/logs/autoclaude.log',
   },
 };
 
-const CONFIG_PATH = path.join(os.homedir(), ".autoclaude", "config.json");
+const CONFIG_PATH = path.join(os.homedir(), '.autoclaude', 'config.json');
 
 function deepMerge<T extends Record<string, unknown>>(
   defaults: T,
-  overrides: Record<string, unknown>
+  overrides: Record<string, unknown>,
 ): T {
   const result = { ...defaults };
 
@@ -101,14 +101,14 @@ function deepMerge<T extends Record<string, unknown>>(
     if (
       defaultVal !== null &&
       overrideVal !== null &&
-      typeof defaultVal === "object" &&
-      typeof overrideVal === "object" &&
+      typeof defaultVal === 'object' &&
+      typeof overrideVal === 'object' &&
       !Array.isArray(defaultVal) &&
       !Array.isArray(overrideVal)
     ) {
       (result as Record<string, unknown>)[key] = deepMerge(
         defaultVal as Record<string, unknown>,
-        overrideVal as Record<string, unknown>
+        overrideVal as Record<string, unknown>,
       );
     } else {
       (result as Record<string, unknown>)[key] = overrideVal;
@@ -127,57 +127,86 @@ function validateConfig(config: AutoClaudeConfig): AutoClaudeConfig {
 
   // injection.maxTokens: 100–10000
   if (config.injection.maxTokens < 100 || config.injection.maxTokens > 10000) {
-    warnings.push(`injection.maxTokens=${config.injection.maxTokens} out of range [100, 10000], using default ${DEFAULT_CONFIG.injection.maxTokens}`);
+    warnings.push(
+      `injection.maxTokens=${config.injection.maxTokens} out of range [100, 10000], using default ${DEFAULT_CONFIG.injection.maxTokens}`,
+    );
     config.injection.maxTokens = DEFAULT_CONFIG.injection.maxTokens;
   }
 
   // injection.includeSessions: 0–20
-  if (config.injection.includeSessions < 0 || config.injection.includeSessions > 20) {
-    warnings.push(`injection.includeSessions=${config.injection.includeSessions} out of range [0, 20], using default ${DEFAULT_CONFIG.injection.includeSessions}`);
+  if (
+    config.injection.includeSessions < 0 ||
+    config.injection.includeSessions > 20
+  ) {
+    warnings.push(
+      `injection.includeSessions=${config.injection.includeSessions} out of range [0, 20], using default ${DEFAULT_CONFIG.injection.includeSessions}`,
+    );
     config.injection.includeSessions = DEFAULT_CONFIG.injection.includeSessions;
   }
 
   // metrics.warnUtilization: 0–1
-  if (config.metrics.warnUtilization < 0 || config.metrics.warnUtilization > 1) {
-    warnings.push(`metrics.warnUtilization=${config.metrics.warnUtilization} out of range [0, 1], using default ${DEFAULT_CONFIG.metrics.warnUtilization}`);
+  if (
+    config.metrics.warnUtilization < 0 ||
+    config.metrics.warnUtilization > 1
+  ) {
+    warnings.push(
+      `metrics.warnUtilization=${config.metrics.warnUtilization} out of range [0, 1], using default ${DEFAULT_CONFIG.metrics.warnUtilization}`,
+    );
     config.metrics.warnUtilization = DEFAULT_CONFIG.metrics.warnUtilization;
   }
 
   // metrics.criticalUtilization: 0–1
-  if (config.metrics.criticalUtilization < 0 || config.metrics.criticalUtilization > 1) {
-    warnings.push(`metrics.criticalUtilization=${config.metrics.criticalUtilization} out of range [0, 1], using default ${DEFAULT_CONFIG.metrics.criticalUtilization}`);
-    config.metrics.criticalUtilization = DEFAULT_CONFIG.metrics.criticalUtilization;
+  if (
+    config.metrics.criticalUtilization < 0 ||
+    config.metrics.criticalUtilization > 1
+  ) {
+    warnings.push(
+      `metrics.criticalUtilization=${config.metrics.criticalUtilization} out of range [0, 1], using default ${DEFAULT_CONFIG.metrics.criticalUtilization}`,
+    );
+    config.metrics.criticalUtilization =
+      DEFAULT_CONFIG.metrics.criticalUtilization;
   }
 
   // warn should be less than critical
   if (config.metrics.warnUtilization >= config.metrics.criticalUtilization) {
-    warnings.push(`metrics.warnUtilization (${config.metrics.warnUtilization}) >= criticalUtilization (${config.metrics.criticalUtilization}), using defaults`);
+    warnings.push(
+      `metrics.warnUtilization (${config.metrics.warnUtilization}) >= criticalUtilization (${config.metrics.criticalUtilization}), using defaults`,
+    );
     config.metrics.warnUtilization = DEFAULT_CONFIG.metrics.warnUtilization;
-    config.metrics.criticalUtilization = DEFAULT_CONFIG.metrics.criticalUtilization;
+    config.metrics.criticalUtilization =
+      DEFAULT_CONFIG.metrics.criticalUtilization;
   }
 
   // decay.dailyRate: 0–1
   if (config.decay.dailyRate < 0 || config.decay.dailyRate > 1) {
-    warnings.push(`decay.dailyRate=${config.decay.dailyRate} out of range [0, 1], using default ${DEFAULT_CONFIG.decay.dailyRate}`);
+    warnings.push(
+      `decay.dailyRate=${config.decay.dailyRate} out of range [0, 1], using default ${DEFAULT_CONFIG.decay.dailyRate}`,
+    );
     config.decay.dailyRate = DEFAULT_CONFIG.decay.dailyRate;
   }
 
   // decay.referenceBoost: 0–1
   if (config.decay.referenceBoost < 0 || config.decay.referenceBoost > 1) {
-    warnings.push(`decay.referenceBoost=${config.decay.referenceBoost} out of range [0, 1], using default ${DEFAULT_CONFIG.decay.referenceBoost}`);
+    warnings.push(
+      `decay.referenceBoost=${config.decay.referenceBoost} out of range [0, 1], using default ${DEFAULT_CONFIG.decay.referenceBoost}`,
+    );
     config.decay.referenceBoost = DEFAULT_CONFIG.decay.referenceBoost;
   }
 
   // decay.gcThreshold: 0–1
   if (config.decay.gcThreshold < 0 || config.decay.gcThreshold > 1) {
-    warnings.push(`decay.gcThreshold=${config.decay.gcThreshold} out of range [0, 1], using default ${DEFAULT_CONFIG.decay.gcThreshold}`);
+    warnings.push(
+      `decay.gcThreshold=${config.decay.gcThreshold} out of range [0, 1], using default ${DEFAULT_CONFIG.decay.gcThreshold}`,
+    );
     config.decay.gcThreshold = DEFAULT_CONFIG.decay.gcThreshold;
   }
 
   // logging.level: must be valid
-  const validLevels = ["debug", "info", "warn", "error"];
+  const validLevels = ['debug', 'info', 'warn', 'error'];
   if (!validLevels.includes(config.logging.level)) {
-    warnings.push(`logging.level="${config.logging.level}" invalid, using default "${DEFAULT_CONFIG.logging.level}"`);
+    warnings.push(
+      `logging.level="${config.logging.level}" invalid, using default "${DEFAULT_CONFIG.logging.level}"`,
+    );
     config.logging.level = DEFAULT_CONFIG.logging.level;
   }
 
@@ -192,9 +221,12 @@ function validateConfig(config: AutoClaudeConfig): AutoClaudeConfig {
 
 export function getConfig(): AutoClaudeConfig {
   try {
-    const raw = fs.readFileSync(CONFIG_PATH, "utf-8");
+    const raw = fs.readFileSync(CONFIG_PATH, 'utf-8');
     const userConfig = JSON.parse(raw) as Record<string, unknown>;
-    const merged = deepMerge(DEFAULT_CONFIG as unknown as Record<string, unknown>, userConfig) as unknown as AutoClaudeConfig;
+    const merged = deepMerge(
+      DEFAULT_CONFIG as unknown as Record<string, unknown>,
+      userConfig,
+    ) as unknown as AutoClaudeConfig;
     return validateConfig(merged);
   } catch {
     // File doesn't exist or is invalid JSON - return defaults

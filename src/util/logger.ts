@@ -1,8 +1,8 @@
-import * as fs from "fs";
-import * as path from "path";
-import * as os from "os";
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 
-type LogLevel = "debug" | "info" | "warn" | "error";
+type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 const LOG_LEVELS: Record<LogLevel, number> = {
   debug: 0,
@@ -12,16 +12,16 @@ const LOG_LEVELS: Record<LogLevel, number> = {
 };
 
 class Logger {
-  private level: LogLevel = "info";
+  private level: LogLevel = 'info';
   private logFile: string;
   private initialized = false;
 
   constructor() {
     this.logFile = path.join(
       os.homedir(),
-      ".autoclaude",
-      "logs",
-      "autoclaude.log"
+      '.autoclaude',
+      'logs',
+      'autoclaude.log',
     );
   }
 
@@ -54,26 +54,26 @@ class Logger {
     const line = `[${timestamp}] [${level.toUpperCase()}] ${message}\n`;
 
     try {
-      fs.appendFileSync(this.logFile, line, "utf-8");
+      fs.appendFileSync(this.logFile, line, 'utf-8');
     } catch {
       // Gracefully handle write failures - never throw
     }
   }
 
   debug(message: string): void {
-    this.write("debug", message);
+    this.write('debug', message);
   }
 
   info(message: string): void {
-    this.write("info", message);
+    this.write('info', message);
   }
 
   warn(message: string): void {
-    this.write("warn", message);
+    this.write('warn', message);
   }
 
   error(message: string): void {
-    this.write("error", message);
+    this.write('error', message);
   }
 }
 

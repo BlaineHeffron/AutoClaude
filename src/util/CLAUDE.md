@@ -7,5 +7,7 @@
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
-| #39 | 3:02 PM | 🟣 | Configuration Management System Implemented | ~527 |
+| #42 | 3:02 PM | 🟣 | Token Estimation and Budget Enforcement Utilities | ~471 |
+| #39 | " | 🟣 | Configuration Management System Implemented | ~527 |
+| #38 | " | 🟣 | Logger Utility Implemented | ~428 |
 </claude-mem-context>

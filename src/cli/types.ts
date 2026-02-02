@@ -11,10 +11,10 @@ export interface HookInput {
   transcript_path?: string;
   cwd?: string;
   hook_event_name?: string;
-  tool_name?: string;    // PostToolUse only
-  tool_input?: any;      // PostToolUse only
-  tool_output?: any;     // PostToolUse only
-  source?: 'startup' | 'resume' | 'compact' | 'clear';  // SessionStart source
+  tool_name?: string; // PostToolUse only
+  tool_input?: unknown; // PostToolUse only
+  tool_output?: unknown; // PostToolUse only
+  source?: 'startup' | 'resume' | 'compact' | 'clear'; // SessionStart source
 }
 
 /**

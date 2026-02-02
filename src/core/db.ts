@@ -101,7 +101,9 @@ export function getDb(): DatabaseType | null {
     return db;
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
-    console.error(`[autoclaude] Failed to initialize database at ${getDbPath()}: ${message}`);
+    console.error(
+      `[autoclaude] Failed to initialize database at ${getDbPath()}: ${message}`,
+    );
 
     // Clean up partial state
     if (db !== null) {

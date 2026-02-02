@@ -1,9 +1,9 @@
-import type { HookInput, HookOutput } from "./types";
-import { insertAction, insertMetric } from "../core/memory";
-import { analyzeActionForDecisions } from "../core/analyzer";
-import { estimateUtilization } from "../core/metrics";
-import { getConfig } from "../util/config";
-import { logger } from "../util/logger";
+import type { HookInput, HookOutput } from './types';
+import { insertAction, insertMetric } from '../core/memory';
+import { analyzeActionForDecisions } from '../core/analyzer';
+import { estimateUtilization } from '../core/metrics';
+import { getConfig } from '../util/config';
+import { logger } from '../util/logger';
 
 // ---------------------------------------------------------------------------
 // Tool-name to action-type classification
@@ -16,34 +16,34 @@ function classifyAction(
   const input = toolInput ?? {};
 
   switch (toolName) {
-    case "Edit":
+    case 'Edit':
       return {
-        actionType: "edit",
+        actionType: 'edit',
         filePath: (input.file_path as string) ?? null,
       };
 
-    case "Write":
+    case 'Write':
       return {
-        actionType: "create",
+        actionType: 'create',
         filePath: (input.file_path as string) ?? null,
       };
 
-    case "Bash": {
-      const command = String(input.command ?? "");
+    case 'Bash': {
+      const command = String(input.command ?? '');
       if (/\b(npm\s+test|jest|pytest|vitest|mocha)\b/.test(command)) {
-        return { actionType: "test", filePath: null };
+        return { actionType: 'test', filePath: null };
       }
       if (/\b(npm\s+run\s+build|make|tsc|esbuild)\b/.test(command)) {
-        return { actionType: "build", filePath: null };
+        return { actionType: 'build', filePath: null };
       }
       if (/\bgit\s+commit\b/.test(command)) {
-        return { actionType: "commit", filePath: null };
+        return { actionType: 'commit', filePath: null };
       }
-      return { actionType: "other", filePath: null };
+      return { actionType: 'other', filePath: null };
     }
 
     default:
-      return { actionType: "other", filePath: null };
+      return { actionType: 'other', filePath: null };
   }
 }
 
@@ -51,19 +51,21 @@ function classifyAction(
 // Outcome detection
 // ---------------------------------------------------------------------------
 
-function determineOutcome(
-  toolOutput: unknown,
-): { outcome: string; errorMessage: string | null } {
-  const outputStr = typeof toolOutput === "string"
-    ? toolOutput
-    : JSON.stringify(toolOutput ?? "");
+function determineOutcome(toolOutput: unknown): {
+  outcome: string;
+  errorMessage: string | null;
+} {
+  const outputStr =
+    typeof toolOutput === 'string'
+      ? toolOutput
+      : JSON.stringify(toolOutput ?? '');
 
   // Look for common error indicators in the output
   if (/\b[Ee]rror\b/.test(outputStr) || /\bERROR\b/.test(outputStr)) {
-    return { outcome: "failure", errorMessage: outputStr.slice(0, 500) };
+    return { outcome: 'failure', errorMessage: outputStr.slice(0, 500) };
   }
 
-  return { outcome: "success", errorMessage: null };
+  return { outcome: 'success', errorMessage: null };
 }
 
 // ---------------------------------------------------------------------------
@@ -74,17 +76,18 @@ export async function captureAction(input: HookInput): Promise<HookOutput> {
   let systemMessage: string | undefined;
 
   try {
-    const toolName = input.tool_name ?? "unknown";
-    const { actionType, filePath } = classifyAction(toolName, input.tool_input);
+    const toolName = input.tool_name ?? 'unknown';
+    const toolInput = input.tool_input as Record<string, unknown> | undefined;
+    const { actionType, filePath } = classifyAction(toolName, toolInput);
     const { outcome, errorMessage } = determineOutcome(input.tool_output);
 
     // Build a descriptive summary. For "other" Bash commands, include the
     // actual command so the analyzer can detect library installs, etc.
     let description: string;
-    if (actionType !== "other") {
+    if (actionType !== 'other') {
       description = `${actionType}: ${filePath ?? toolName}`;
-    } else if (toolName === "Bash" && input.tool_input?.command) {
-      description = `bash: ${String(input.tool_input.command).slice(0, 200)}`;
+    } else if (toolName === 'Bash' && toolInput?.command) {
+      description = `bash: ${String(toolInput.command).slice(0, 200)}`;
     } else {
       description = `${toolName} invocation`;
     }
@@ -108,12 +111,12 @@ export async function captureAction(input: HookInput): Promise<HookOutput> {
     // Record metrics
     const config = getConfig();
     if (config.metrics.enabled) {
-      insertMetric(input.session_id, "tool_calls", 1);
+      insertMetric(input.session_id, 'tool_calls', 1);
 
       // Check utilization and emit warnings
       if (input.transcript_path) {
         const util = estimateUtilization(input.transcript_path);
-        insertMetric(input.session_id, "context_utilization", util.utilization);
+        insertMetric(input.session_id, 'context_utilization', util.utilization);
 
         if (util.utilization >= config.metrics.criticalUtilization) {
           systemMessage =

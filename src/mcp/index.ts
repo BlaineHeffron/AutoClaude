@@ -8,9 +8,9 @@
  * - autoclaude_metrics: Get session and project performance metrics
  */
 
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { z } from 'zod';
 import {
   searchMemory,
   createSession,
@@ -23,22 +23,23 @@ import {
   getTopLearnings,
   getSessionMetrics,
   getSessionActions,
-} from "../core/memory";
-import type { SearchResult } from "../core/memory";
-import { logger } from "../util/logger";
-import { getConfig } from "../util/config";
+} from '../core/memory';
+import type { SearchResult } from '../core/memory';
+import { logger } from '../util/logger';
+import type { LogLevel } from '../util/logger';
+import { getConfig } from '../util/config';
 
 // ---------------------------------------------------------------------------
 // Initialize
 // ---------------------------------------------------------------------------
 
 const config = getConfig();
-logger.setLevel(config.logging.level as any);
+logger.setLevel(config.logging.level as LogLevel);
 if (config.logging.file) {
   logger.setLogFile(config.logging.file);
 }
 
-logger.info("[mcp] autoclaude MCP server starting");
+logger.info('[mcp] autoclaude MCP server starting');
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -55,7 +56,7 @@ function getProjectPath(): string {
  * Detects the current session ID from environment.
  */
 function getSessionId(): string {
-  return process.env.AUTOCLAUDE_SESSION_ID || "unknown";
+  return process.env.AUTOCLAUDE_SESSION_ID || 'unknown';
 }
 
 /**
@@ -74,22 +75,20 @@ function ensureSession(sessionId: string, projectPath: string): void {
  * Formats search results as readable text.
  */
 function formatSearchResults(results: SearchResult[]): string {
-  if (results.length === 0) return "No results found.";
+  if (results.length === 0) return 'No results found.';
 
   const lines: string[] = [];
   for (const r of results) {
     const source =
-      r.source === "sessions"
-        ? "Session"
-        : r.source === "decisions"
-          ? "Decision"
-          : "Learning";
-    const snippet = r.snippet
-      .replace(/<b>/g, "**")
-      .replace(/<\/b>/g, "**");
+      r.source === 'sessions'
+        ? 'Session'
+        : r.source === 'decisions'
+          ? 'Decision'
+          : 'Learning';
+    const snippet = r.snippet.replace(/<b>/g, '**').replace(/<\/b>/g, '**');
     lines.push(`[${source} #${r.id}] ${snippet}`);
   }
-  return lines.join("\n\n");
+  return lines.join('\n\n');
 }
 
 // ---------------------------------------------------------------------------
@@ -98,8 +97,8 @@ function formatSearchResults(results: SearchResult[]): string {
 
 const server = new McpServer(
   {
-    name: "autoclaude-memory",
-    version: "1.0.0",
+    name: 'autoclaude-memory',
+    version: '1.0.0',
   },
   {
     capabilities: {
@@ -113,30 +112,30 @@ const server = new McpServer(
 // ---------------------------------------------------------------------------
 
 server.tool(
-  "autoclaude_search",
-  "Search past session history, decisions, and learnings for the current project",
+  'autoclaude_search',
+  'Search past session history, decisions, and learnings for the current project',
   {
-    query: z.string().describe("Natural language search query"),
+    query: z.string().describe('Natural language search query'),
     category: z
-      .enum(["sessions", "decisions", "learnings", "all"])
-      .default("all")
-      .describe("Category to search within"),
+      .enum(['sessions', 'decisions', 'learnings', 'all'])
+      .default('all')
+      .describe('Category to search within'),
     limit: z
       .number()
       .default(5)
-      .describe("Maximum number of results to return"),
+      .describe('Maximum number of results to return'),
   },
   async (args) => {
     try {
       const results = searchMemory(
         args.query,
-        args.category as "sessions" | "decisions" | "learnings" | "all",
+        args.category as 'sessions' | 'decisions' | 'learnings' | 'all',
         args.limit,
       );
 
       // Boost relevance of any returned learnings
       for (const r of results) {
-        if (r.source === "learnings") {
+        if (r.source === 'learnings') {
           incrementLearningReference(r.id);
         }
       }
@@ -150,7 +149,7 @@ server.tool(
       return {
         content: [
           {
-            type: "text" as const,
+            type: 'text' as const,
             text: formatted,
           },
         ],
@@ -159,7 +158,7 @@ server.tool(
       const msg = err instanceof Error ? err.message : String(err);
       logger.error(`[mcp] search error: ${msg}`);
       return {
-        content: [{ type: "text" as const, text: `Search error: ${msg}` }],
+        content: [{ type: 'text' as const, text: `Search error: ${msg}` }],
         isError: true,
       };
     }
@@ -171,21 +170,19 @@ server.tool(
 // ---------------------------------------------------------------------------
 
 server.tool(
-  "autoclaude_record_decision",
-  "Record an architectural decision or convention for future reference",
+  'autoclaude_record_decision',
+  'Record an architectural decision or convention for future reference',
   {
-    decision: z.string().describe("The decision that was made"),
-    rationale: z.string().describe("Why this decision was made"),
+    decision: z.string().describe('The decision that was made'),
+    rationale: z.string().describe('Why this decision was made'),
     category: z
       .string()
       .optional()
-      .describe(
-        "Category: architecture, pattern, library, convention, bugfix",
-      ),
+      .describe('Category: architecture, pattern, library, convention, bugfix'),
     files_affected: z
       .array(z.string())
       .optional()
-      .describe("List of file paths affected by this decision"),
+      .describe('List of file paths affected by this decision'),
   },
   async (args) => {
     try {
@@ -213,8 +210,8 @@ server.tool(
       return {
         content: [
           {
-            type: "text" as const,
-            text: `Decision recorded (id: ${id}). Category: ${args.category || "general"}. This will be included in future session context injection.`,
+            type: 'text' as const,
+            text: `Decision recorded (id: ${id}). Category: ${args.category || 'general'}. This will be included in future session context injection.`,
           },
         ],
       };
@@ -224,7 +221,7 @@ server.tool(
       return {
         content: [
           {
-            type: "text" as const,
+            type: 'text' as const,
             text: `Failed to record decision: ${msg}`,
           },
         ],
@@ -239,20 +236,18 @@ server.tool(
 // ---------------------------------------------------------------------------
 
 server.tool(
-  "autoclaude_record_learning",
-  "Record a gotcha, pattern, or insight discovered during development",
+  'autoclaude_record_learning',
+  'Record a gotcha, pattern, or insight discovered during development',
   {
-    learning: z
-      .string()
-      .describe("The gotcha, pattern, or insight discovered"),
+    learning: z.string().describe('The gotcha, pattern, or insight discovered'),
     category: z
       .string()
       .optional()
-      .describe("Category: gotcha, pattern, performance, security, convention"),
+      .describe('Category: gotcha, pattern, performance, security, convention'),
     context: z
       .string()
       .optional()
-      .describe("What was happening when this was learned"),
+      .describe('What was happening when this was learned'),
   },
   async (args) => {
     try {
@@ -278,8 +273,8 @@ server.tool(
       return {
         content: [
           {
-            type: "text" as const,
-            text: `Learning recorded (id: ${id}). Category: ${args.category || "general"}. Relevance score: 1.0 (will decay over time unless referenced).`,
+            type: 'text' as const,
+            text: `Learning recorded (id: ${id}). Category: ${args.category || 'general'}. Relevance score: 1.0 (will decay over time unless referenced).`,
           },
         ],
       };
@@ -289,7 +284,7 @@ server.tool(
       return {
         content: [
           {
-            type: "text" as const,
+            type: 'text' as const,
             text: `Failed to record learning: ${msg}`,
           },
         ],
@@ -304,20 +299,20 @@ server.tool(
 // ---------------------------------------------------------------------------
 
 server.tool(
-  "autoclaude_metrics",
-  "Get context utilization and session performance metrics",
+  'autoclaude_metrics',
+  'Get context utilization and session performance metrics',
   {
     period: z
-      .enum(["session", "day", "week"])
-      .default("session")
-      .describe("Time period for metrics aggregation"),
+      .enum(['session', 'day', 'week'])
+      .default('session')
+      .describe('Time period for metrics aggregation'),
   },
   async (args) => {
     try {
       const projectPath = getProjectPath();
       const lines: string[] = [];
 
-      if (args.period === "session") {
+      if (args.period === 'session') {
         const sessionId = getSessionId();
         const metrics = getSessionMetrics(sessionId);
         const actions = getSessionActions(sessionId);
@@ -326,7 +321,7 @@ server.tool(
         lines.push(`- Actions recorded: ${actions.length}`);
 
         if (metrics.length > 0) {
-          lines.push("- Tracked metrics:");
+          lines.push('- Tracked metrics:');
           for (const m of metrics) {
             lines.push(`  - ${m.metric_name}: ${m.metric_value}`);
           }
@@ -336,12 +331,12 @@ server.tool(
         const byType: Record<string, number> = {};
         let failures = 0;
         for (const a of actions) {
-          const t = a.action_type || "other";
+          const t = a.action_type || 'other';
           byType[t] = (byType[t] || 0) + 1;
-          if (a.outcome === "failure") failures++;
+          if (a.outcome === 'failure') failures++;
         }
         if (Object.keys(byType).length > 0) {
-          lines.push("- Action breakdown:");
+          lines.push('- Action breakdown:');
           for (const [type, count] of Object.entries(byType)) {
             lines.push(`  - ${type}: ${count}`);
           }
@@ -353,7 +348,7 @@ server.tool(
         // Project-level metrics
         const sessions = getRecentSessions(
           projectPath,
-          args.period === "day" ? 10 : 50,
+          args.period === 'day' ? 10 : 50,
         );
         const decisions = getActiveDecisions(projectPath);
         const learnings = getTopLearnings(projectPath, 100);
@@ -382,15 +377,13 @@ server.tool(
       }
 
       return {
-        content: [{ type: "text" as const, text: lines.join("\n") }],
+        content: [{ type: 'text' as const, text: lines.join('\n') }],
       };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       logger.error(`[mcp] metrics error: ${msg}`);
       return {
-        content: [
-          { type: "text" as const, text: `Metrics error: ${msg}` },
-        ],
+        content: [{ type: 'text' as const, text: `Metrics error: ${msg}` }],
         isError: true,
       };
     }
@@ -405,7 +398,7 @@ async function main() {
   try {
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    logger.info("[mcp] autoclaude MCP server running on stdio");
+    logger.info('[mcp] autoclaude MCP server running on stdio');
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     logger.error(`[mcp] failed to start: ${msg}`);

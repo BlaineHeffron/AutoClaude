@@ -13,6 +13,7 @@
  */
 
 import { logger } from '../util/logger';
+import type { LogLevel } from '../util/logger';
 import { getConfig } from '../util/config';
 import { closeDb } from '../core/db';
 import type { HookInput, HookOutput } from './types';
@@ -70,7 +71,10 @@ function parseHookInput(raw: string): HookInput {
 /**
  * Routes the command to the appropriate handler module and returns its result.
  */
-async function routeCommand(command: string, input: HookInput): Promise<HookOutput> {
+async function routeCommand(
+  command: string,
+  input: HookInput,
+): Promise<HookOutput> {
   switch (command) {
     case 'session-start': {
       const { handleSessionStart } = await import('./session-start');
@@ -109,6 +113,14 @@ async function routeCommand(command: string, input: HookInput): Promise<HookOutp
       const { handleGc } = await import('./gc');
       return handleGc(input);
     }
+    case 'export': {
+      const { handleExport } = await import('./export');
+      return handleExport(input);
+    }
+    case 'backup': {
+      const { handleBackup } = await import('./backup');
+      return handleBackup(input);
+    }
     default:
       logger.warn(`Unknown command: ${command}`);
       return SAFE_OUTPUT;
@@ -125,7 +137,7 @@ async function main(): Promise<void> {
   try {
     // Load configuration and apply log level
     const config = getConfig();
-    logger.setLevel(config.logging.level as any);
+    logger.setLevel(config.logging.level as LogLevel);
 
     if (config.logging.file) {
       logger.setLogFile(config.logging.file);
@@ -145,14 +157,18 @@ async function main(): Promise<void> {
     const input = parseHookInput(raw);
 
     if (input.session_id) {
-      logger.debug(`Session: ${input.session_id}, event: ${input.hook_event_name || 'n/a'}`);
+      logger.debug(
+        `Session: ${input.session_id}, event: ${input.hook_event_name || 'n/a'}`,
+      );
     }
 
     // Route to handler
     output = await routeCommand(command, input);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
-    logger.error(`CLI error (command=${process.argv[2] || 'none'}): ${message}`);
+    logger.error(
+      `CLI error (command=${process.argv[2] || 'none'}): ${message}`,
+    );
     output = SAFE_OUTPUT;
   } finally {
     // Always output valid JSON so hooks never block Claude

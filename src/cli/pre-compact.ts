@@ -1,15 +1,19 @@
-import type { HookInput, HookOutput } from "./types";
+import type { HookInput, HookOutput } from './types';
 import {
   getSession,
   getSessionActions,
   insertSnapshot,
   insertMetric,
   updateSession,
-} from "../core/memory";
-import { summarizeSession, collectUniqueFiles, countByType } from "../core/summarizer";
-import { estimateUtilization } from "../core/metrics";
-import { getConfig } from "../util/config";
-import { logger } from "../util/logger";
+} from '../core/memory';
+import {
+  summarizeSession,
+  collectUniqueFiles,
+  countByType,
+} from '../core/summarizer';
+import { estimateUtilization } from '../core/metrics';
+import { getConfig } from '../util/config';
+import { logger } from '../util/logger';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -19,15 +23,17 @@ import { logger } from "../util/logger";
  * Build a human-readable progress summary from a list of actions,
  * e.g. "5 edits, 2 tests, 1 build".
  */
-function buildProgressSummary(actions: import("../core/memory").ActionRecord[]): string {
+function buildProgressSummary(
+  actions: import('../core/memory').ActionRecord[],
+): string {
   const counts = countByType(actions);
 
   const parts: string[] = [];
   for (const [type, count] of Object.entries(counts)) {
-    parts.push(`${count} ${type}${count !== 1 ? "s" : ""}`);
+    parts.push(`${count} ${type}${count !== 1 ? 's' : ''}`);
   }
 
-  return parts.length > 0 ? parts.join(", ") : "no actions recorded";
+  return parts.length > 0 ? parts.join(', ') : 'no actions recorded';
 }
 
 // ---------------------------------------------------------------------------
@@ -47,7 +53,7 @@ export async function handlePreCompact(input: HookInput): Promise<HookOutput> {
     // Save a snapshot for post-compact restoration
     insertSnapshot({
       session_id: sessionId,
-      trigger: "pre-compact",
+      trigger: 'pre-compact',
       current_task: currentTask,
       progress_summary: progressSummary,
       open_questions: JSON.stringify([]),
@@ -67,11 +73,13 @@ export async function handlePreCompact(input: HookInput): Promise<HookOutput> {
     const config = getConfig();
     if (input.transcript_path && config.metrics.enabled) {
       const util = estimateUtilization(input.transcript_path);
-      insertMetric(sessionId, "context_utilization", util.utilization);
+      insertMetric(sessionId, 'context_utilization', util.utilization);
       // Update peak utilization on session
       const peak = session?.context_utilization_peak ?? 0;
       if (util.utilization > peak) {
-        updateSession(sessionId, { context_utilization_peak: util.utilization });
+        updateSession(sessionId, {
+          context_utilization_peak: util.utilization,
+        });
       }
     }
 
@@ -86,7 +94,7 @@ export async function handlePreCompact(input: HookInput): Promise<HookOutput> {
   return {
     continue: true,
     hookSpecificOutput: {
-      systemMessage: "Context snapshot saved to memory",
+      systemMessage: 'Context snapshot saved to memory',
     },
   };
 }

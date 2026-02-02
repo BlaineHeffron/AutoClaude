@@ -1,5 +1,5 @@
-import type Database from "better-sqlite3";
-import { getDb } from "./db";
+import type Database from 'better-sqlite3';
+import { getDb } from './db';
 
 // ---------------------------------------------------------------------------
 // Record interfaces
@@ -79,7 +79,7 @@ export interface MetricRecord {
 }
 
 export interface SearchResult {
-  source: "sessions" | "decisions" | "learnings";
+  source: 'sessions' | 'decisions' | 'learnings';
   id: number;
   snippet: string;
   rank: number;
@@ -129,17 +129,17 @@ export function updateSession(
   // Build a dynamic SET clause from the provided keys, filtering out the
   // primary key and any undefined values.
   const allowed = new Set<string>([
-    "ended_at",
-    "summary",
-    "task_description",
-    "files_modified",
-    "decisions_made",
-    "learnings",
-    "context_utilization_peak",
-    "tokens_used_input",
-    "tokens_used_output",
-    "compaction_count",
-    "parent_session_id",
+    'ended_at',
+    'summary',
+    'task_description',
+    'files_modified',
+    'decisions_made',
+    'learnings',
+    'context_utilization_peak',
+    'tokens_used_input',
+    'tokens_used_output',
+    'compaction_count',
+    'parent_session_id',
   ]);
 
   const setClauses: string[] = [];
@@ -157,9 +157,9 @@ export function updateSession(
   values.push(id);
 
   try {
-    d.prepare(
-      `UPDATE sessions SET ${setClauses.join(", ")} WHERE id = ?`,
-    ).run(...values);
+    d.prepare(`UPDATE sessions SET ${setClauses.join(', ')} WHERE id = ?`).run(
+      ...values,
+    );
   } catch {
     // swallow
   }
@@ -170,9 +170,9 @@ export function getSession(id: string): SessionRecord | null {
   if (!d) return null;
 
   try {
-    const row = d
-      .prepare(`SELECT * FROM sessions WHERE id = ?`)
-      .get(id) as SessionRecord | undefined;
+    const row = d.prepare(`SELECT * FROM sessions WHERE id = ?`).get(id) as
+      | SessionRecord
+      | undefined;
     return row ?? null;
   } catch {
     return null;
@@ -467,9 +467,7 @@ export function insertSnapshot(snapshot: SnapshotRecord): number {
   }
 }
 
-export function getLatestSnapshot(
-  sessionId: string,
-): SnapshotRecord | null {
+export function getLatestSnapshot(sessionId: string): SnapshotRecord | null {
   const d = db();
   if (!d) return null;
 
@@ -691,7 +689,11 @@ export function getProjectMetrics(projectPath: string): {
                 COALESCE(AVG(context_utilization_peak), 0) as avg_util
          FROM sessions WHERE project_path = ?`,
       )
-      .get(projectPath) as { cnt: number; compactions: number; avg_util: number };
+      .get(projectPath) as {
+      cnt: number;
+      compactions: number;
+      avg_util: number;
+    };
 
     const actionRow = d
       .prepare(
@@ -710,23 +712,17 @@ export function getProjectMetrics(projectPath: string): {
       .get(projectPath) as { cnt: number };
 
     const decisionRow = d
-      .prepare(
-        `SELECT COUNT(*) as cnt FROM decisions WHERE project_path = ?`,
-      )
+      .prepare(`SELECT COUNT(*) as cnt FROM decisions WHERE project_path = ?`)
       .get(projectPath) as { cnt: number };
 
     const learningRow = d
-      .prepare(
-        `SELECT COUNT(*) as cnt FROM learnings WHERE project_path = ?`,
-      )
+      .prepare(`SELECT COUNT(*) as cnt FROM learnings WHERE project_path = ?`)
       .get(projectPath) as { cnt: number };
 
     let promptCount = 0;
     try {
       const promptRow = d
-        .prepare(
-          `SELECT COUNT(*) as cnt FROM prompts WHERE project_path = ?`,
-        )
+        .prepare(`SELECT COUNT(*) as cnt FROM prompts WHERE project_path = ?`)
         .get(projectPath) as { cnt: number };
       promptCount = promptRow.cnt;
     } catch {
@@ -755,7 +751,7 @@ export function getProjectMetrics(projectPath: string): {
 
 export function searchMemory(
   query: string,
-  category: "sessions" | "decisions" | "learnings" | "all" = "all",
+  category: 'sessions' | 'decisions' | 'learnings' | 'all' = 'all',
   limit: number = 20,
 ): SearchResult[] {
   const d = db();
@@ -764,7 +760,7 @@ export function searchMemory(
   const results: SearchResult[] = [];
 
   try {
-    if (category === "sessions" || category === "all") {
+    if (category === 'sessions' || category === 'all') {
       const rows = d
         .prepare(
           `SELECT rowid, snippet(sessions_fts, 0, '<b>', '</b>', '...', 32) AS snippet, rank
@@ -781,7 +777,7 @@ export function searchMemory(
 
       for (const row of rows) {
         results.push({
-          source: "sessions",
+          source: 'sessions',
           id: row.rowid,
           snippet: row.snippet,
           rank: row.rank,
@@ -789,7 +785,7 @@ export function searchMemory(
       }
     }
 
-    if (category === "decisions" || category === "all") {
+    if (category === 'decisions' || category === 'all') {
       const rows = d
         .prepare(
           `SELECT rowid, snippet(decisions_fts, 0, '<b>', '</b>', '...', 32) AS snippet, rank
@@ -806,7 +802,7 @@ export function searchMemory(
 
       for (const row of rows) {
         results.push({
-          source: "decisions",
+          source: 'decisions',
           id: row.rowid,
           snippet: row.snippet,
           rank: row.rank,
@@ -814,7 +810,7 @@ export function searchMemory(
       }
     }
 
-    if (category === "learnings" || category === "all") {
+    if (category === 'learnings' || category === 'all') {
       const rows = d
         .prepare(
           `SELECT rowid, snippet(learnings_fts, 0, '<b>', '</b>', '...', 32) AS snippet, rank
@@ -831,7 +827,7 @@ export function searchMemory(
 
       for (const row of rows) {
         results.push({
-          source: "learnings",
+          source: 'learnings',
           id: row.rowid,
           snippet: row.snippet,
           rank: row.rank,
@@ -857,9 +853,7 @@ export function garbageCollect(threshold: number): { removed: number } {
 
   try {
     const info = d
-      .prepare(
-        `DELETE FROM learnings WHERE relevance_score < ?`,
-      )
+      .prepare(`DELETE FROM learnings WHERE relevance_score < ?`)
       .run(threshold);
     return { removed: info.changes };
   } catch {

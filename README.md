@@ -172,6 +172,128 @@ All data is stored in `~/.autoclaude/memory.db` (SQLite with WAL mode). The data
 - **prompts** — User prompt history for repeated instruction detection
 - **FTS5 indexes** — Full-text search across sessions, decisions, learnings, and prompts
 
+## MCP Tools Reference
+
+AutoClaude exposes four tools via its MCP server:
+
+### `autoclaude_search`
+
+Search past session history, decisions, and learnings.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `query` | string | (required) | Natural language search query |
+| `category` | `"sessions" \| "decisions" \| "learnings" \| "all"` | `"all"` | Category to search within |
+| `limit` | number | `5` | Maximum number of results |
+
+**Example:**
+```
+query: "authentication middleware"
+category: "decisions"
+limit: 10
+```
+
+### `autoclaude_record_decision`
+
+Record an architectural decision or convention.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `decision` | string | The decision that was made |
+| `rationale` | string | Why this decision was made |
+| `category` | string? | `architecture`, `pattern`, `library`, `convention`, `bugfix` |
+| `files_affected` | string[]? | File paths affected by this decision |
+
+### `autoclaude_record_learning`
+
+Record a gotcha, pattern, or insight.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `learning` | string | The gotcha, pattern, or insight |
+| `category` | string? | `gotcha`, `pattern`, `performance`, `security`, `convention` |
+| `context` | string? | What was happening when this was learned |
+
+### `autoclaude_metrics`
+
+Get context utilization and session performance metrics.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `period` | `"session" \| "day" \| "week"` | `"session"` | Time period for aggregation |
+
+## Database Maintenance
+
+### Backup
+
+Create a point-in-time copy of the database:
+
+```bash
+autoclaude backup
+```
+
+Backups are stored in `~/.autoclaude/backups/` with ISO-8601 timestamps. The database connection is safely closed before copying to avoid WAL corruption.
+
+### Export
+
+Export all sessions, decisions, and learnings as JSON:
+
+```bash
+autoclaude export
+```
+
+Outputs a JSON object containing all records, suitable for analysis or migration.
+
+### Garbage Collection
+
+Run relevance decay and prune old learnings:
+
+```bash
+autoclaude gc
+```
+
+This applies the configured `decay.dailyRate` to all learnings and removes entries whose relevance score has fallen below `decay.gcThreshold`. GC also runs automatically on each session start.
+
+## Troubleshooting
+
+### Database locked errors
+
+SQLite uses WAL mode for concurrent access, but simultaneous write operations from multiple processes can cause `SQLITE_BUSY` errors.
+
+**Fix:** Ensure only one Claude Code session accesses the database at a time per project. If the error persists, close all sessions and delete the WAL file:
+
+```bash
+rm ~/.autoclaude/memory.db-wal ~/.autoclaude/memory.db-shm
+```
+
+### Hooks not firing
+
+If AutoClaude hooks are not executing:
+
+1. Verify the plugin is registered: `claude plugins list`
+2. Re-register: `claude plugins add ./`
+3. Check that the build output exists: `ls dist/cli/index.js`
+4. Rebuild if needed: `npm run rebuild`
+5. Check the log file for errors: `cat ~/.autoclaude/logs/autoclaude.log`
+
+### MCP connection failures
+
+If the MCP server is not responding:
+
+1. Test the server manually: `node dist/mcp/index.js`
+2. Verify the `.mcp.json` configuration points to the correct binary
+3. Check that `better-sqlite3` native bindings match your Node version: `npm rebuild better-sqlite3`
+4. Review logs: `tail -20 ~/.autoclaude/logs/autoclaude.log`
+
+### Context injection not appearing
+
+If session start context is not being injected:
+
+1. Verify `injection.enabled` is `true` in config (default)
+2. Check that previous sessions have summaries: `autoclaude query "session"`
+3. Ensure the project path matches between sessions (AutoClaude scopes data by project)
+4. Increase `injection.maxTokens` if the token budget is too small
+
 ## Development
 
 ```bash
@@ -183,6 +305,12 @@ npm run build
 
 # Run tests
 npm test
+
+# Lint
+npm run lint
+
+# Format code
+npm run format
 
 # Clean build output
 npm run clean

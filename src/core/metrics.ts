@@ -1,4 +1,4 @@
-import * as fs from "fs";
+import * as fs from 'fs';
 
 const BYTES_PER_TOKEN = 4;
 const CONTEXT_WINDOW_TOKENS = 200_000;
@@ -20,7 +20,9 @@ export interface UtilizationEstimate {
  * Returns { bytes: 0, estimatedTokens: 0, utilization: 0 } if the file
  * cannot be read (never throws).
  */
-export function estimateUtilization(transcriptPath: string): UtilizationEstimate {
+export function estimateUtilization(
+  transcriptPath: string,
+): UtilizationEstimate {
   try {
     const stat = fs.statSync(transcriptPath);
     const bytes = stat.size;

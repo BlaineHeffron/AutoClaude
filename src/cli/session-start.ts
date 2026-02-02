@@ -1,15 +1,15 @@
-import type { HookInput, HookOutput } from "./types";
+import type { HookInput, HookOutput } from './types';
 import {
   createSession,
   decayLearnings,
   garbageCollect,
   insertMetric,
-} from "../core/memory";
-import { buildInjectionContext } from "../core/injector";
-import { estimateUtilization } from "../core/metrics";
-import { estimateTokens } from "../util/tokens";
-import { getConfig } from "../util/config";
-import { logger } from "../util/logger";
+} from '../core/memory';
+import { buildInjectionContext } from '../core/injector';
+import { estimateUtilization } from '../core/metrics';
+import { estimateTokens } from '../util/tokens';
+import { getConfig } from '../util/config';
+import { logger } from '../util/logger';
 
 // ---------------------------------------------------------------------------
 // Handler: SessionStart
@@ -23,7 +23,7 @@ export async function handleSessionStart(
     const projectPath = cwd ?? process.cwd();
 
     logger.info(
-      `session-start: id=${session_id} source=${source ?? "startup"} project=${projectPath}`,
+      `session-start: id=${session_id} source=${source ?? 'startup'} project=${projectPath}`,
     );
 
     // 1. Create the session record
@@ -50,24 +50,28 @@ export async function handleSessionStart(
 
     if (input.transcript_path && config.metrics.enabled) {
       const util = estimateUtilization(input.transcript_path);
-      insertMetric(session_id, "context_utilization", util.utilization);
+      insertMetric(session_id, 'context_utilization', util.utilization);
 
       if (util.utilization >= config.metrics.criticalUtilization) {
         systemMessage =
           `[AutoClaude] Context utilization is at ${(util.utilization * 100).toFixed(0)}%. ` +
           `Consider running /compact to free up context space.`;
-        logger.warn(`session-start: utilization critical at ${(util.utilization * 100).toFixed(1)}%`);
+        logger.warn(
+          `session-start: utilization critical at ${(util.utilization * 100).toFixed(1)}%`,
+        );
       } else if (util.utilization >= config.metrics.warnUtilization) {
         systemMessage =
           `[AutoClaude] Context utilization is at ${(util.utilization * 100).toFixed(0)}%. ` +
           `Approaching capacity — be concise to extend the session.`;
-        logger.info(`session-start: utilization warning at ${(util.utilization * 100).toFixed(1)}%`);
+        logger.info(
+          `session-start: utilization warning at ${(util.utilization * 100).toFixed(1)}%`,
+        );
       }
     }
 
     // 5. If injection is disabled, return early (but still include utilization warning)
     if (!config.injection.enabled) {
-      logger.debug("session-start: injection disabled, skipping context build");
+      logger.debug('session-start: injection disabled, skipping context build');
       if (systemMessage) {
         return { continue: true, hookSpecificOutput: { systemMessage } };
       }
@@ -83,7 +87,7 @@ export async function handleSessionStart(
     );
 
     if (!context && !systemMessage) {
-      logger.debug("session-start: no context to inject");
+      logger.debug('session-start: no context to inject');
       return { continue: true };
     }
 

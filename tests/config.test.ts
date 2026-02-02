@@ -1,8 +1,5 @@
-import { describe, it, before, after, beforeEach, afterEach } from "node:test";
-import * as assert from "node:assert/strict";
-import * as path from "node:path";
-import * as fs from "node:fs";
-import * as os from "node:os";
+import { describe, it } from 'node:test';
+import * as assert from 'node:assert/strict';
 
 // We test config by importing the module and checking behavior with various
 // config files. The config module reads from ~/.autoclaude/config.json,
@@ -12,12 +9,11 @@ import * as os from "node:os";
 // we test the validation and merge logic by importing the functions we can.
 // For getConfig(), we verify it returns defaults when no config exists.
 
-import { getConfig, DEFAULT_CONFIG } from "../src/util/config";
-import type { AutoClaudeConfig } from "../src/util/config";
+import { getConfig, DEFAULT_CONFIG } from '../src/util/config';
 
-describe("Config", () => {
-  describe("Default config", () => {
-    it("should return default config when no config file exists", () => {
+describe('Config', () => {
+  describe('Default config', () => {
+    it('should return default config when no config file exists', () => {
       const config = getConfig();
 
       // Verify all default values
@@ -30,7 +26,7 @@ describe("Config", () => {
 
       assert.equal(config.capture.enabled, true);
       assert.equal(config.capture.asyncActions, true);
-      assert.deepEqual(config.capture.captureTools, ["Edit", "Write", "Bash"]);
+      assert.deepEqual(config.capture.captureTools, ['Edit', 'Write', 'Bash']);
 
       assert.equal(config.metrics.enabled, true);
       assert.equal(config.metrics.warnUtilization, 0.55);
@@ -40,30 +36,30 @@ describe("Config", () => {
       assert.equal(config.decay.referenceBoost, 0.1);
       assert.equal(config.decay.gcThreshold, 0.1);
 
-      assert.equal(config.logging.level, "info");
-      assert.ok(config.logging.file.includes("autoclaude"));
+      assert.equal(config.logging.level, 'info');
+      assert.ok(config.logging.file.includes('autoclaude'));
     });
   });
 
-  describe("DEFAULT_CONFIG export", () => {
-    it("should export the DEFAULT_CONFIG object", () => {
+  describe('DEFAULT_CONFIG export', () => {
+    it('should export the DEFAULT_CONFIG object', () => {
       assert.ok(DEFAULT_CONFIG);
       assert.equal(DEFAULT_CONFIG.injection.maxTokens, 1000);
       assert.equal(DEFAULT_CONFIG.metrics.warnUtilization, 0.55);
     });
   });
 
-  describe("Config structure", () => {
-    it("should have all required top-level keys", () => {
+  describe('Config structure', () => {
+    it('should have all required top-level keys', () => {
       const config = getConfig();
-      assert.ok("injection" in config);
-      assert.ok("capture" in config);
-      assert.ok("metrics" in config);
-      assert.ok("decay" in config);
-      assert.ok("logging" in config);
+      assert.ok('injection' in config);
+      assert.ok('capture' in config);
+      assert.ok('metrics' in config);
+      assert.ok('decay' in config);
+      assert.ok('logging' in config);
     });
 
-    it("should have numeric values in valid ranges", () => {
+    it('should have numeric values in valid ranges', () => {
       const config = getConfig();
 
       // After validation, all values should be in range
@@ -86,12 +82,12 @@ describe("Config", () => {
       assert.ok(config.decay.gcThreshold <= 1);
     });
 
-    it("should have valid logging level", () => {
+    it('should have valid logging level', () => {
       const config = getConfig();
-      const validLevels = ["debug", "info", "warn", "error"];
+      const validLevels = ['debug', 'info', 'warn', 'error'];
       assert.ok(
         validLevels.includes(config.logging.level),
-        `Logging level "${config.logging.level}" should be one of ${validLevels.join(", ")}`,
+        `Logging level "${config.logging.level}" should be one of ${validLevels.join(', ')}`,
       );
     });
   });

@@ -3,16 +3,16 @@ import {
   getActiveDecisions,
   getTopLearnings,
   getLatestProjectSnapshot,
-} from "./memory";
+} from './memory';
 import type {
   SessionRecord,
   DecisionRecord,
   LearningRecord,
   SnapshotRecord,
-} from "./memory";
-import { estimateTokens, truncateToTokenBudget } from "../util/tokens";
-import type { AutoClaudeConfig } from "../util/config";
-import { logger } from "../util/logger";
+} from './memory';
+import { estimateTokens, truncateToTokenBudget } from '../util/tokens';
+import type { AutoClaudeConfig } from '../util/config';
+import { logger } from '../util/logger';
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -35,7 +35,7 @@ export function buildInjectionContext(
   config: AutoClaudeConfig,
 ): string {
   // 1. Gather raw data from memory store
-  let sessionsSection = "";
+  let sessionsSection = '';
   if (config.injection.includeSessions > 0) {
     const sessions = getRecentSummarizedSessions(
       projectPath,
@@ -44,22 +44,22 @@ export function buildInjectionContext(
     sessionsSection = formatSessionsSection(sessions);
   }
 
-  let decisionsSection = "";
+  let decisionsSection = '';
   if (config.injection.includeDecisions) {
     const decisions = getActiveDecisions(projectPath);
     decisionsSection = formatDecisionsSection(decisions);
   }
 
-  let learningsSection = "";
+  let learningsSection = '';
   if (config.injection.includeLearnings) {
     const learnings = getTopLearnings(projectPath, 10);
     learningsSection = formatLearningsSection(learnings);
   }
 
-  let snapshotSection = "";
+  let snapshotSection = '';
   if (
     config.injection.includeSnapshot &&
-    (source === "compact" || source === "resume")
+    (source === 'compact' || source === 'resume')
   ) {
     snapshotSection = loadSnapshotSection(projectPath, sessionId);
   }
@@ -91,11 +91,11 @@ export function buildInjectionContext(
 function formatDate(isoString: string): string {
   try {
     const d = new Date(isoString);
-    return d.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+    return d.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   } catch {
     return isoString;
@@ -103,41 +103,39 @@ function formatDate(isoString: string): string {
 }
 
 function formatSessionsSection(sessions: SessionRecord[]): string {
-  if (sessions.length === 0) return "";
+  if (sessions.length === 0) return '';
 
   const lines = sessions
     .filter((s) => s.summary)
     .map((s) => `- [${formatDate(s.started_at)}]: ${s.summary}`);
 
-  if (lines.length === 0) return "";
+  if (lines.length === 0) return '';
 
-  return `## Recent Sessions\n${lines.join("\n")}`;
+  return `## Recent Sessions\n${lines.join('\n')}`;
 }
 
 function formatDecisionsSection(decisions: DecisionRecord[]): string {
-  if (decisions.length === 0) return "";
+  if (decisions.length === 0) return '';
 
   const lines = decisions.map(
-    (d) =>
-      `- ${d.category ? `[${d.category}]` : "[general]"}: ${d.decision}`,
+    (d) => `- ${d.category ? `[${d.category}]` : '[general]'}: ${d.decision}`,
   );
 
-  return `## Active Decisions\n${lines.join("\n")}`;
+  return `## Active Decisions\n${lines.join('\n')}`;
 }
 
 function formatLearningsSection(learnings: LearningRecord[]): string {
-  if (learnings.length === 0) return "";
+  if (learnings.length === 0) return '';
 
   const lines = learnings.map(
-    (l) =>
-      `- ${l.category ? `[${l.category}]` : "[general]"}: ${l.learning}`,
+    (l) => `- ${l.category ? `[${l.category}]` : '[general]'}: ${l.learning}`,
   );
 
-  return `## Learnings\n${lines.join("\n")}`;
+  return `## Learnings\n${lines.join('\n')}`;
 }
 
 function formatSnapshotSection(snapshot: SnapshotRecord): string {
-  const parts: string[] = ["## Snapshot (Resuming)"];
+  const parts: string[] = ['## Snapshot (Resuming)'];
 
   if (snapshot.current_task) {
     parts.push(`**Task:** ${snapshot.current_task}`);
@@ -150,21 +148,21 @@ function formatSnapshotSection(snapshot: SnapshotRecord): string {
     try {
       const parsed = JSON.parse(snapshot.next_steps);
       if (Array.isArray(parsed)) {
-        steps = parsed.map((s: string) => `  - ${s}`).join("\n");
+        steps = parsed.map((s: string) => `  - ${s}`).join('\n');
       } else {
         steps = `  - ${snapshot.next_steps}`;
       }
     } catch {
       const lines = snapshot.next_steps
-        .split("\n")
+        .split('\n')
         .map((l) => l.trim())
         .filter(Boolean);
-      steps = lines.map((l) => `  - ${l}`).join("\n");
+      steps = lines.map((l) => `  - ${l}`).join('\n');
     }
     parts.push(`**Next Steps:**\n${steps}`);
   }
 
-  return parts.join("\n");
+  return parts.join('\n');
 }
 
 // ---------------------------------------------------------------------------
@@ -181,7 +179,7 @@ function loadSnapshotSection(
   currentSessionId: string,
 ): string {
   const snapshot = getLatestProjectSnapshot(projectPath, currentSessionId);
-  if (!snapshot) return "";
+  if (!snapshot) return '';
 
   return formatSnapshotSection(snapshot);
 }
@@ -204,7 +202,7 @@ function assembleContext(
   },
   maxTokens: number,
 ): string {
-  const header = "# [autoclaude] Session Context\n";
+  const header = '# [autoclaude] Session Context\n';
   const headerTokens = estimateTokens(header);
   let remaining = maxTokens - headerTokens;
 
@@ -234,8 +232,8 @@ function assembleContext(
   }
 
   if (ordered.length === 0) {
-    return "";
+    return '';
   }
 
-  return header + "\n" + ordered.join("\n\n");
+  return header + '\n' + ordered.join('\n\n');
 }

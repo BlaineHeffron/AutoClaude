@@ -4,7 +4,7 @@ const BYTES_PER_TOKEN = 4;
  * Estimates the token count of a string using the ~4 bytes per token heuristic.
  */
 export function estimateTokens(text: string): number {
-  const byteLength = Buffer.byteLength(text, "utf-8");
+  const byteLength = Buffer.byteLength(text, 'utf-8');
   return Math.ceil(byteLength / BYTES_PER_TOKEN);
 }
 
@@ -12,10 +12,7 @@ export function estimateTokens(text: string): number {
  * Truncates text to fit within a token budget, cutting at sentence boundaries
  * where possible. Falls back to word boundaries, then raw character truncation.
  */
-export function truncateToTokenBudget(
-  text: string,
-  maxTokens: number
-): string {
+export function truncateToTokenBudget(text: string, maxTokens: number): string {
   if (estimateTokens(text) <= maxTokens) {
     return text;
   }
@@ -32,7 +29,7 @@ export function truncateToTokenBudget(
   }
 
   if (truncated.length === 0) {
-    return "";
+    return '';
   }
 
   // Try to cut at the last sentence boundary
@@ -42,7 +39,7 @@ export function truncateToTokenBudget(
   }
 
   // Fall back to the last word boundary
-  const wordEnd = truncated.lastIndexOf(" ");
+  const wordEnd = truncated.lastIndexOf(' ');
   if (wordEnd > 0 && wordEnd >= truncated.length * 0.5) {
     return truncated.slice(0, wordEnd).trimEnd();
   }
@@ -60,9 +57,9 @@ function findLastSentenceBoundary(text: string): number {
 
   for (let i = text.length - 1; i >= 0; i--) {
     const ch = text[i];
-    if (ch === "." || ch === "!" || ch === "?") {
+    if (ch === '.' || ch === '!' || ch === '?') {
       const next = i + 1;
-      if (next >= text.length || text[next] === " " || text[next] === "\n") {
+      if (next >= text.length || text[next] === ' ' || text[next] === '\n') {
         lastPos = next;
         break;
       }

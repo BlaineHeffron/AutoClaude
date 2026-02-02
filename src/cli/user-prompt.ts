@@ -1,8 +1,8 @@
-import type { HookInput, HookOutput } from "./types";
-import { insertPrompt, findSimilarPrompts, insertMetric } from "../core/memory";
-import { estimateUtilization } from "../core/metrics";
-import { getConfig } from "../util/config";
-import { logger } from "../util/logger";
+import type { HookInput, HookOutput } from './types';
+import { insertPrompt, findSimilarPrompts, insertMetric } from '../core/memory';
+import { estimateUtilization } from '../core/metrics';
+import { getConfig } from '../util/config';
+import { logger } from '../util/logger';
 
 // ---------------------------------------------------------------------------
 // Handler: UserPromptSubmit
@@ -15,11 +15,12 @@ import { logger } from "../util/logger";
 function extractPromptText(input: HookInput): string {
   // The prompt may come as tool_input.prompt, tool_input.content, or as a string
   if (input.tool_input) {
-    if (typeof input.tool_input === "string") return input.tool_input;
-    if (input.tool_input.prompt) return String(input.tool_input.prompt);
-    if (input.tool_input.content) return String(input.tool_input.content);
+    if (typeof input.tool_input === 'string') return input.tool_input;
+    const ti = input.tool_input as Record<string, unknown>;
+    if (ti.prompt) return String(ti.prompt);
+    if (ti.content) return String(ti.content);
   }
-  return "";
+  return '';
 }
 
 export async function handleUserPrompt(input: HookInput): Promise<HookOutput> {
@@ -49,19 +50,45 @@ export async function handleUserPrompt(input: HookInput): Promise<HookOutput> {
         // FTS5 defaults to AND, which is too strict for similarity detection.
         // We extract meaningful words (>3 chars) and join with OR.
         const stopWords = new Set([
-          "the", "and", "for", "that", "this", "with", "from", "have",
-          "will", "been", "they", "were", "their", "what", "when", "make",
-          "like", "just", "over", "such", "into", "than", "some", "could",
-          "them", "would", "each", "which", "about", "help",
+          'the',
+          'and',
+          'for',
+          'that',
+          'this',
+          'with',
+          'from',
+          'have',
+          'will',
+          'been',
+          'they',
+          'were',
+          'their',
+          'what',
+          'when',
+          'make',
+          'like',
+          'just',
+          'over',
+          'such',
+          'into',
+          'than',
+          'some',
+          'could',
+          'them',
+          'would',
+          'each',
+          'which',
+          'about',
+          'help',
         ]);
         const words = promptText
           .slice(0, 200)
-          .replace(/[^a-zA-Z0-9\s]/g, " ")
+          .replace(/[^a-zA-Z0-9\s]/g, ' ')
           .toLowerCase()
           .split(/\s+/)
           .filter((w) => w.length > 3 && !stopWords.has(w));
 
-        const searchQuery = words.slice(0, 10).join(" OR ");
+        const searchQuery = words.slice(0, 10).join(' OR ');
 
         if (words.length >= 3) {
           const similar = findSimilarPrompts(
@@ -78,7 +105,7 @@ export async function handleUserPrompt(input: HookInput): Promise<HookOutput> {
             if (bestMatch.rank < -1) {
               messages.push(
                 `[AutoClaude] This instruction appears similar to one from a previous session. ` +
-                `The prior context may already be captured in memory.`,
+                  `The prior context may already be captured in memory.`,
               );
               logger.info(
                 `[user-prompt] Repeated instruction detected (rank=${bestMatch.rank.toFixed(1)}, session=${bestMatch.session_id})`,
@@ -94,17 +121,17 @@ export async function handleUserPrompt(input: HookInput): Promise<HookOutput> {
     // Check utilization
     if (input.transcript_path && config.metrics.enabled) {
       const util = estimateUtilization(input.transcript_path);
-      insertMetric(sessionId, "context_utilization", util.utilization);
+      insertMetric(sessionId, 'context_utilization', util.utilization);
 
       if (util.utilization >= config.metrics.criticalUtilization) {
         messages.push(
           `[AutoClaude] Context utilization is at ${(util.utilization * 100).toFixed(0)}%. ` +
-          `Consider running /compact to free up context space.`,
+            `Consider running /compact to free up context space.`,
         );
       } else if (util.utilization >= config.metrics.warnUtilization) {
         messages.push(
           `[AutoClaude] Context utilization is at ${(util.utilization * 100).toFixed(0)}%. ` +
-          `Approaching capacity — be concise to extend the session.`,
+            `Approaching capacity — be concise to extend the session.`,
         );
       }
     }
@@ -121,7 +148,7 @@ export async function handleUserPrompt(input: HookInput): Promise<HookOutput> {
     return {
       continue: true,
       hookSpecificOutput: {
-        systemMessage: messages.join("\n"),
+        systemMessage: messages.join('\n'),
       },
     };
   }

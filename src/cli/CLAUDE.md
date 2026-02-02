@@ -7,6 +7,8 @@
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
+| #627 | 8:14 PM | 🟣 | Database Export Command Implemented | ~364 |
+| #625 | " | 🟣 | Database Backup Command Implemented | ~370 |
 | #67 | 3:08 PM | 🟣 | SessionEnd Hook Handler Implemented | ~492 |
 | #66 | " | 🟣 | SessionStop Hook Handler Implemented | ~511 |
 | #65 | 3:07 PM | 🔴 | Fixed Function Import Name in CLI Router | ~215 |

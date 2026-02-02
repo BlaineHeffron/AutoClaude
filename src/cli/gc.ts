@@ -1,7 +1,7 @@
-import type { HookInput, HookOutput } from "./types";
-import { decayLearnings, garbageCollect } from "../core/memory";
-import { getConfig } from "../util/config";
-import { logger } from "../util/logger";
+import type { HookInput, HookOutput } from './types';
+import { decayLearnings, garbageCollect } from '../core/memory';
+import { getConfig } from '../util/config';
+import { logger } from '../util/logger';
 
 // ---------------------------------------------------------------------------
 // Garbage collection handler
@@ -22,7 +22,7 @@ export async function handleGc(_input: HookInput): Promise<HookOutput> {
     const message =
       `Garbage collection complete. ` +
       `Applied ${(dailyRate * 100).toFixed(1)}% decay. ` +
-      `Removed ${removed} entr${removed === 1 ? "y" : "ies"} below threshold ${gcThreshold}.`;
+      `Removed ${removed} entr${removed === 1 ? 'y' : 'ies'} below threshold ${gcThreshold}.`;
 
     logger.info(`[gc] ${message}`);
 

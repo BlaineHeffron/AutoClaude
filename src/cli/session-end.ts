@@ -1,11 +1,7 @@
-import type { HookInput, HookOutput } from "./types";
-import {
-  getSession,
-  getSessionActions,
-  updateSession,
-} from "../core/memory";
-import { summarizeSession, collectUniqueFiles } from "../core/summarizer";
-import { logger } from "../util/logger";
+import type { HookInput, HookOutput } from './types';
+import { getSession, getSessionActions, updateSession } from '../core/memory';
+import { summarizeSession, collectUniqueFiles } from '../core/summarizer';
+import { logger } from '../util/logger';
 
 // ---------------------------------------------------------------------------
 // Handler: SessionEnd
@@ -41,7 +37,7 @@ export async function handleSessionEnd(input: HookInput): Promise<HookOutput> {
     if (Object.keys(updates).length > 0) {
       updateSession(sessionId, updates);
       logger.info(
-        `[session-end] Finalized session ${sessionId} (updated: ${Object.keys(updates).join(", ")})`,
+        `[session-end] Finalized session ${sessionId} (updated: ${Object.keys(updates).join(', ')})`,
       );
     } else {
       logger.debug(

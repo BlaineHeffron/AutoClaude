@@ -1,15 +1,15 @@
-import type { HookInput, HookOutput } from "./types";
+import type { HookInput, HookOutput } from './types';
 import {
   getSession,
   getSessionActions,
   insertMetric,
   updateSession,
-} from "../core/memory";
-import { summarizeSession, collectUniqueFiles } from "../core/summarizer";
-import { extractLearningsFromSession } from "../core/analyzer";
-import { estimateUtilization } from "../core/metrics";
-import { getConfig } from "../util/config";
-import { logger } from "../util/logger";
+} from '../core/memory';
+import { summarizeSession, collectUniqueFiles } from '../core/summarizer';
+import { extractLearningsFromSession } from '../core/analyzer';
+import { estimateUtilization } from '../core/metrics';
+import { getConfig } from '../util/config';
+import { logger } from '../util/logger';
 
 // ---------------------------------------------------------------------------
 // Handler: Stop
@@ -38,7 +38,7 @@ export async function handleSessionStop(input: HookInput): Promise<HookOutput> {
 
     if (input.transcript_path && config.metrics.enabled) {
       const util = estimateUtilization(input.transcript_path);
-      insertMetric(sessionId, "context_utilization", util.utilization);
+      insertMetric(sessionId, 'context_utilization', util.utilization);
 
       // Update peak utilization
       const session = getSession(sessionId);
