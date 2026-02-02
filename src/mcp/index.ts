@@ -2,10 +2,10 @@
  * AutoClaude MCP Server
  *
  * Exposes memory store tools to Claude via the Model Context Protocol:
- * - autoclaude_search: Full-text search across sessions, decisions, learnings
- * - autoclaude_record_decision: Record an architectural decision
- * - autoclaude_record_learning: Record a gotcha, pattern, or insight
- * - autoclaude_metrics: Get session and project performance metrics
+ * - search: Full-text search across sessions, decisions, learnings
+ * - record_decision: Record an architectural decision
+ * - record_learning: Record a gotcha, pattern, or insight
+ * - metrics: Get session and project performance metrics
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -108,11 +108,11 @@ const server = new McpServer(
 );
 
 // ---------------------------------------------------------------------------
-// Tool: autoclaude_search
+// Tool: search
 // ---------------------------------------------------------------------------
 
 server.tool(
-  'autoclaude_search',
+  'search',
   'Search past session history, decisions, and learnings for the current project',
   {
     query: z.string().describe('Natural language search query'),
@@ -166,11 +166,11 @@ server.tool(
 );
 
 // ---------------------------------------------------------------------------
-// Tool: autoclaude_record_decision
+// Tool: record_decision
 // ---------------------------------------------------------------------------
 
 server.tool(
-  'autoclaude_record_decision',
+  'record_decision',
   'Record an architectural decision or convention for future reference',
   {
     decision: z.string().describe('The decision that was made'),
@@ -232,11 +232,11 @@ server.tool(
 );
 
 // ---------------------------------------------------------------------------
-// Tool: autoclaude_record_learning
+// Tool: record_learning
 // ---------------------------------------------------------------------------
 
 server.tool(
-  'autoclaude_record_learning',
+  'record_learning',
   'Record a gotcha, pattern, or insight discovered during development',
   {
     learning: z.string().describe('The gotcha, pattern, or insight discovered'),
@@ -295,11 +295,11 @@ server.tool(
 );
 
 // ---------------------------------------------------------------------------
-// Tool: autoclaude_metrics
+// Tool: metrics
 // ---------------------------------------------------------------------------
 
 server.tool(
-  'autoclaude_metrics',
+  'metrics',
   'Get context utilization and session performance metrics',
   {
     period: z

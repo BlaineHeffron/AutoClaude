@@ -62,7 +62,7 @@ describe('MCP Server Data Layer', () => {
     });
   });
 
-  describe('autoclaude_record_decision (via insertDecision)', () => {
+  describe('record_decision (via insertDecision)', () => {
     it('should insert and retrieve decisions', () => {
       const id = insertDecision({
         session_id: 'mcp-test-1',
@@ -81,7 +81,7 @@ describe('MCP Server Data Layer', () => {
     });
   });
 
-  describe('autoclaude_record_learning (via insertLearning)', () => {
+  describe('record_learning (via insertLearning)', () => {
     it('should insert learning with relevance score', () => {
       const id = insertLearning({
         session_id: 'mcp-test-1',

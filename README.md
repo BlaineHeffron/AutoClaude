@@ -208,10 +208,10 @@ Claude can use these tools directly (the MCP server makes them available):
 
 | Tool | Description |
 |------|-------------|
-| `autoclaude_search` | Search sessions, decisions, learnings via FTS5 |
-| `autoclaude_record_decision` | Explicitly record an architectural decision |
-| `autoclaude_record_learning` | Explicitly record a gotcha, pattern, or insight |
-| `autoclaude_metrics` | Query utilization and performance metrics |
+| `search` | Search sessions, decisions, learnings via FTS5 |
+| `record_decision` | Explicitly record an architectural decision |
+| `record_learning` | Explicitly record a gotcha, pattern, or insight |
+| `metrics` | Query utilization and performance metrics |
 
 ### Database Maintenance
 
