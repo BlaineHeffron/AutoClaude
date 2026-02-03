@@ -1,1 +1,2 @@
+./scripts/check-version-sync.sh
 npx lint-staged
