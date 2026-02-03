@@ -139,6 +139,16 @@ async function routeCommand(
 }
 
 /**
+ * Returns true when running inside a Zeroshot multi-agent session.
+ * Zeroshot sets ZEROSHOT_BLOCK_ASK_USER=1 for every spawned agent.
+ * We skip all hook logic to avoid polluting the memory DB with
+ * ephemeral agent sessions and to preserve blind validation integrity.
+ */
+function isZeroshotAgent(): boolean {
+  return process.env.ZEROSHOT_BLOCK_ASK_USER === '1';
+}
+
+/**
  * Main entry point. Reads config, sets up logging, reads stdin,
  * routes the command, and outputs the result as JSON.
  */
@@ -146,6 +156,11 @@ async function main(): Promise<void> {
   let output: HookOutput = SAFE_OUTPUT;
 
   try {
+    // Skip all hook logic inside Zeroshot multi-agent sessions
+    if (isZeroshotAgent()) {
+      return;
+    }
+
     // Load configuration and apply log level
     const config = getConfig();
     logger.setLevel(config.logging.level as LogLevel);
