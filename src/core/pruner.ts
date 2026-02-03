@@ -18,7 +18,7 @@ interface PrunerHealthResponse {
 }
 
 interface PrunerPruneResponse {
-  pruned_text: string;
+  pruned_code: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -91,7 +91,7 @@ export async function prune(
     const res = await fetch(`${config.pruner.url}/prune`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, query, threshold }),
+      body: JSON.stringify({ code: text, query, threshold }),
       signal: controller.signal,
     });
     clearTimeout(timeout);
@@ -102,7 +102,7 @@ export async function prune(
 
     const body = (await res.json()) as PrunerPruneResponse;
     const originalTokens = estimateTokens(text);
-    const prunedTokens = estimateTokens(body.pruned_text);
+    const prunedTokens = estimateTokens(body.pruned_code);
     const reductionPercent =
       originalTokens > 0
         ? ((originalTokens - prunedTokens) / originalTokens) * 100
@@ -113,7 +113,7 @@ export async function prune(
     );
 
     return {
-      prunedText: body.pruned_text,
+      prunedText: body.pruned_code,
       originalTokens,
       prunedTokens,
       reductionPercent,
