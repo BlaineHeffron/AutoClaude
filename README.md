@@ -6,17 +6,24 @@ A Claude Code plugin that gives Claude persistent memory across sessions. It aut
 
 **The solution:** AutoClaude captures everything automatically via Claude Code's hook system, stores it in SQLite, and injects the most relevant prior context at the start of each session. No wrapper scripts, no changed workflows — just install the plugin and keep working.
 
-## Quick Start
+## Install from Marketplace
+
+```
+/plugin marketplace add BlaineHeffron/autoclaude
+/plugin install autoclaude@autoclaude
+```
+
+## Install from Source
 
 ```bash
-git clone https://github.com/blaine/autoclaude.git
+git clone https://github.com/BlaineHeffron/autoclaude.git
 cd autoclaude
 npm install
 npm run build
 claude plugins add ./
 ```
 
-That's it. AutoClaude is now active. Start a Claude Code session and it works automatically in the background.
+Either way, AutoClaude is now active. Start a Claude Code session and it works automatically in the background.
 
 ## How It Works
 

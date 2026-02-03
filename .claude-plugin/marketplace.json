@@ -1,18 +1,24 @@
 {
   "name": "autoclaude",
   "owner": {
-    "name": "blaine"
+    "name": "blaine",
+    "url": "https://github.com/BlaineHeffron"
   },
   "metadata": {
-    "description": "AutoClaude context management plugin",
+    "description": "Persistent memory and context management for Claude Code",
     "homepage": "https://github.com/BlaineHeffron/autoclaude"
   },
   "plugins": [
     {
       "name": "autoclaude",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "./",
-      "description": "Automated context management across Claude Code sessions - captures session state, persists decisions and learnings, injects relevant context on session start"
+      "description": "Automated context management across Claude Code sessions - captures session state, persists decisions and learnings, injects relevant context on session start",
+      "author": {
+        "name": "blaine"
+      },
+      "category": "productivity",
+      "tags": ["memory", "context-management", "session-persistence", "sqlite"]
     }
   ]
 }
