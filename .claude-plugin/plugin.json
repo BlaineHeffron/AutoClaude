@@ -1,6 +1,6 @@
 {
   "name": "autoclaude",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Automated context management across Claude Code sessions - captures session state, persists decisions and learnings, injects relevant context on session start",
   "author": {
     "name": "blaine"
