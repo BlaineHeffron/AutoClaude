@@ -12,6 +12,7 @@ import {
   countByType,
 } from '../core/summarizer';
 import { estimateUtilization } from '../core/metrics';
+import { pruneIfAvailable } from '../core/pruner';
 import { getConfig } from '../util/config';
 import { logger } from '../util/logger';
 
@@ -47,8 +48,26 @@ export async function handlePreCompact(input: HookInput): Promise<HookOutput> {
     const session = getSession(sessionId);
 
     const currentTask = session?.task_description ?? null;
-    const progressSummary = buildProgressSummary(actions);
+    let progressSummary = buildProgressSummary(actions);
     const workingFiles = JSON.stringify(collectUniqueFiles(actions));
+
+    // If pruner is available and we have a current task, prune the
+    // progress summary to keep it focused on the active task
+    if (currentTask && progressSummary.length > 100) {
+      try {
+        const result = await pruneIfAvailable(progressSummary, currentTask, {
+          timeoutMs: 3000,
+        });
+        if (result.reductionPercent > 0) {
+          progressSummary = result.prunedText;
+          logger.info(
+            `[pre-compact] pruned progress summary: ${result.reductionPercent.toFixed(1)}% reduction`,
+          );
+        }
+      } catch {
+        // Fall through with original summary
+      }
+    }
 
     // Save a snapshot for post-compact restoration
     insertSnapshot({

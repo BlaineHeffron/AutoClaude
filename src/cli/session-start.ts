@@ -47,9 +47,11 @@ export async function handleSessionStart(
 
     // 4. Record utilization metric if transcript is available
     let systemMessage: string | undefined;
+    let currentUtilization = 0;
 
     if (input.transcript_path && config.metrics.enabled) {
       const util = estimateUtilization(input.transcript_path);
+      currentUtilization = util.utilization;
       insertMetric(session_id, 'context_utilization', util.utilization);
 
       if (util.utilization >= config.metrics.criticalUtilization) {
@@ -79,11 +81,13 @@ export async function handleSessionStart(
     }
 
     // 6. Build injection context using the injector module
+    //    Pass utilization so the injector can adaptively reduce budget
     const context = buildInjectionContext(
       projectPath,
       session_id,
       source,
       config,
+      { utilization: currentUtilization },
     );
 
     if (!context && !systemMessage) {

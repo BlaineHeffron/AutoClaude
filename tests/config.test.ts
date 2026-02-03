@@ -38,6 +38,12 @@ describe('Config', () => {
 
       assert.equal(config.logging.level, 'info');
       assert.ok(config.logging.file.includes('autoclaude'));
+
+      assert.equal(config.pruner.enabled, true);
+      assert.equal(config.pruner.url, 'http://localhost:8000');
+      assert.equal(config.pruner.threshold, 0.5);
+      assert.equal(config.pruner.timeout, 5000);
+      assert.equal(config.pruner.adaptiveThreshold, true);
     });
   });
 
@@ -57,6 +63,7 @@ describe('Config', () => {
       assert.ok('metrics' in config);
       assert.ok('decay' in config);
       assert.ok('logging' in config);
+      assert.ok('pruner' in config);
     });
 
     it('should have numeric values in valid ranges', () => {
@@ -80,6 +87,17 @@ describe('Config', () => {
       assert.ok(config.decay.referenceBoost <= 1);
       assert.ok(config.decay.gcThreshold >= 0);
       assert.ok(config.decay.gcThreshold <= 1);
+    });
+
+    it('should have pruner values in valid ranges', () => {
+      const config = getConfig();
+      assert.ok(config.pruner.threshold >= 0);
+      assert.ok(config.pruner.threshold <= 1);
+      assert.ok(config.pruner.timeout >= 1000);
+      assert.ok(config.pruner.timeout <= 30000);
+      assert.equal(typeof config.pruner.enabled, 'boolean');
+      assert.equal(typeof config.pruner.adaptiveThreshold, 'boolean');
+      assert.equal(typeof config.pruner.url, 'string');
     });
 
     it('should have valid logging level', () => {

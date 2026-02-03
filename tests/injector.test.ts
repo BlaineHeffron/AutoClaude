@@ -107,4 +107,86 @@ describe('Injector', () => {
     const tokens = estimateTokens(result);
     assert.ok(tokens <= 210, `Should be within budget: got ${tokens} tokens`);
   });
+
+  it('should reduce budget at elevated utilization', () => {
+    const fullResult = buildInjectionContext(
+      '/test/project',
+      'inj-current',
+      'startup',
+      DEFAULT_CONFIG,
+    );
+    const fullTokens = estimateTokens(fullResult);
+
+    // At 60% utilization (above warnUtilization=55%), budget should be reduced
+    const reducedResult = buildInjectionContext(
+      '/test/project',
+      'inj-current',
+      'startup',
+      DEFAULT_CONFIG,
+      { utilization: 0.6 },
+    );
+    const reducedTokens = estimateTokens(reducedResult);
+
+    // Reduced context should be smaller or equal to full context
+    assert.ok(
+      reducedTokens <= fullTokens,
+      `Reduced (${reducedTokens}) should be <= full (${fullTokens})`,
+    );
+  });
+
+  it('should skip sessions and learnings at critical utilization', () => {
+    // At 75% utilization (above criticalUtilization=70%), sessions and learnings are skipped
+    const result = buildInjectionContext(
+      '/test/project',
+      'inj-current',
+      'startup',
+      DEFAULT_CONFIG,
+      { utilization: 0.75 },
+    );
+
+    // Should NOT include Recent Sessions or Learnings sections
+    assert.ok(
+      !result.includes('Recent Sessions'),
+      `Should not include Recent Sessions at critical utilization`,
+    );
+    assert.ok(
+      !result.includes('Learnings'),
+      `Should not include Learnings at critical utilization`,
+    );
+  });
+
+  it('should still include decisions at critical utilization', () => {
+    const result = buildInjectionContext(
+      '/test/project',
+      'inj-current',
+      'startup',
+      DEFAULT_CONFIG,
+      { utilization: 0.75 },
+    );
+
+    // Decisions should still be present (high priority)
+    assert.ok(
+      result.includes('Active Decisions'),
+      `Should still include Active Decisions at critical utilization`,
+    );
+  });
+
+  it('should not reduce budget at low utilization', () => {
+    const noUtilResult = buildInjectionContext(
+      '/test/project',
+      'inj-current',
+      'startup',
+      DEFAULT_CONFIG,
+    );
+    const lowUtilResult = buildInjectionContext(
+      '/test/project',
+      'inj-current',
+      'startup',
+      DEFAULT_CONFIG,
+      { utilization: 0.2 },
+    );
+
+    // Both should produce the same output
+    assert.equal(noUtilResult, lowUtilResult);
+  });
 });

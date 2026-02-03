@@ -18,6 +18,13 @@ import { logger } from '../util/logger';
 // Public API
 // ---------------------------------------------------------------------------
 
+export interface InjectionOptions {
+  /** Current context utilization (0–1). Used for adaptive budget reduction. */
+  utilization?: number;
+  /** Current task description. Reserved for future pruner-focused injection. */
+  currentTask?: string;
+}
+
 /**
  * Builds the full context injection string for a session start.
  *
@@ -26,6 +33,11 @@ import { logger } from '../util/logger';
  * each section as markdown and assembles them under a priority-based
  * token budget.
  *
+ * When utilization is provided, the budget is reduced proportionally:
+ * - Below warnUtilization (55%): full budget
+ * - At warnUtilization: budget scaled down to 50%
+ * - At criticalUtilization (70%): budget slashed to 30%, sessions/learnings skipped
+ *
  * Returns an empty string when there is nothing to inject.
  */
 export function buildInjectionContext(
@@ -33,10 +45,38 @@ export function buildInjectionContext(
   sessionId: string,
   source: string | undefined,
   config: AutoClaudeConfig,
+  options?: InjectionOptions,
 ): string {
+  const utilization = options?.utilization ?? 0;
+
+  // Compute effective token budget based on utilization
+  let effectiveBudget = config.injection.maxTokens;
+  let skipSessions = false;
+  let skipLearnings = false;
+
+  if (utilization >= config.metrics.criticalUtilization) {
+    // Critical: slash to 30%, skip sessions and learnings
+    effectiveBudget = Math.floor(config.injection.maxTokens * 0.3);
+    skipSessions = true;
+    skipLearnings = true;
+    logger.info(
+      `injector: critical utilization (${(utilization * 100).toFixed(0)}%), budget reduced to ${effectiveBudget} tokens`,
+    );
+  } else if (utilization >= config.metrics.warnUtilization) {
+    // Warning: scale budget proportionally from 100% down to 50%
+    const range =
+      config.metrics.criticalUtilization - config.metrics.warnUtilization;
+    const progress = (utilization - config.metrics.warnUtilization) / range;
+    const scale = 1.0 - progress * 0.5; // 1.0 at warn, 0.5 at critical
+    effectiveBudget = Math.floor(config.injection.maxTokens * scale);
+    logger.info(
+      `injector: elevated utilization (${(utilization * 100).toFixed(0)}%), budget reduced to ${effectiveBudget} tokens`,
+    );
+  }
+
   // 1. Gather raw data from memory store
   let sessionsSection = '';
-  if (config.injection.includeSessions > 0) {
+  if (!skipSessions && config.injection.includeSessions > 0) {
     const sessions = getRecentSummarizedSessions(
       projectPath,
       config.injection.includeSessions,
@@ -51,7 +91,7 @@ export function buildInjectionContext(
   }
 
   let learningsSection = '';
-  if (config.injection.includeLearnings) {
+  if (!skipLearnings && config.injection.includeLearnings) {
     const learnings = getTopLearnings(projectPath, 10);
     learningsSection = formatLearningsSection(learnings);
   }
@@ -64,7 +104,7 @@ export function buildInjectionContext(
     snapshotSection = loadSnapshotSection(projectPath, sessionId);
   }
 
-  // 2. Assemble under token budget
+  // 2. Assemble under effective token budget
   const context = assembleContext(
     {
       snapshot: snapshotSection,
@@ -72,12 +112,12 @@ export function buildInjectionContext(
       learnings: learningsSection,
       sessions: sessionsSection,
     },
-    config.injection.maxTokens,
+    effectiveBudget,
   );
 
   if (context) {
     logger.info(
-      `injector: built ~${estimateTokens(context)} tokens of context`,
+      `injector: built ~${estimateTokens(context)} tokens of context (budget: ${effectiveBudget})`,
     );
   }
 

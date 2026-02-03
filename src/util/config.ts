@@ -52,6 +52,19 @@ export interface AutoClaudeConfig {
     /** Path to log file. Supports ~ for home directory. Default: "~/.autoclaude/logs/autoclaude.log". */
     file: string;
   };
+  /** SWE-Pruner integration settings. */
+  pruner: {
+    /** Whether pruner integration is enabled. Default: true. */
+    enabled: boolean;
+    /** URL of the SWE-Pruner FastAPI server. Default: "http://localhost:8000". */
+    url: string;
+    /** Base pruning threshold (0–1). Lower = more aggressive pruning. Default: 0.5. */
+    threshold: number;
+    /** HTTP request timeout in milliseconds. Default: 5000. */
+    timeout: number;
+    /** Whether to lower threshold adaptively at high context utilization. Default: true. */
+    adaptiveThreshold: boolean;
+  };
 }
 
 const DEFAULT_CONFIG: AutoClaudeConfig = {
@@ -81,6 +94,13 @@ const DEFAULT_CONFIG: AutoClaudeConfig = {
   logging: {
     level: 'info',
     file: '~/.autoclaude/logs/autoclaude.log',
+  },
+  pruner: {
+    enabled: true,
+    url: 'http://localhost:8000',
+    threshold: 0.5,
+    timeout: 5000,
+    adaptiveThreshold: true,
   },
 };
 
@@ -199,6 +219,22 @@ function validateConfig(config: AutoClaudeConfig): AutoClaudeConfig {
       `decay.gcThreshold=${config.decay.gcThreshold} out of range [0, 1], using default ${DEFAULT_CONFIG.decay.gcThreshold}`,
     );
     config.decay.gcThreshold = DEFAULT_CONFIG.decay.gcThreshold;
+  }
+
+  // pruner.threshold: 0–1
+  if (config.pruner.threshold < 0 || config.pruner.threshold > 1) {
+    warnings.push(
+      `pruner.threshold=${config.pruner.threshold} out of range [0, 1], using default ${DEFAULT_CONFIG.pruner.threshold}`,
+    );
+    config.pruner.threshold = DEFAULT_CONFIG.pruner.threshold;
+  }
+
+  // pruner.timeout: 1000–30000
+  if (config.pruner.timeout < 1000 || config.pruner.timeout > 30000) {
+    warnings.push(
+      `pruner.timeout=${config.pruner.timeout} out of range [1000, 30000], using default ${DEFAULT_CONFIG.pruner.timeout}`,
+    );
+    config.pruner.timeout = DEFAULT_CONFIG.pruner.timeout;
   }
 
   // logging.level: must be valid
