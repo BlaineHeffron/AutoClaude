@@ -74,7 +74,6 @@ const COMMAND_TO_EVENT: Record<string, string> = {
   'session-start': 'SessionStart',
   'user-prompt': 'UserPromptSubmit',
   'capture-action': 'PostToolUse',
-  'pre-compact': 'PreCompact',
   'session-stop': 'Stop',
   'session-end': 'SessionEnd',
 };

@@ -110,10 +110,5 @@ export async function handlePreCompact(input: HookInput): Promise<HookOutput> {
     logger.error(`[pre-compact] ${msg}`);
   }
 
-  return {
-    continue: true,
-    hookSpecificOutput: {
-      systemMessage: 'Context snapshot saved to memory',
-    },
-  };
+  return { continue: true };
 }

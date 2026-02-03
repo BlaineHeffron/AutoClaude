@@ -105,7 +105,7 @@ function formatSearchResults(results: SearchResult[]): string {
 const server = new McpServer(
   {
     name: 'autoclaude-memory',
-    version: '1.1.1',
+    version: '1.1.3',
   },
   {
     capabilities: {
