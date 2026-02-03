@@ -23,6 +23,7 @@ import {
   getTopLearnings,
   getSessionMetrics,
   getSessionActions,
+  insertMetric,
 } from '../core/memory';
 import type { SearchResult } from '../core/memory';
 import { logger } from '../util/logger';
@@ -104,7 +105,7 @@ function formatSearchResults(results: SearchResult[]): string {
 const server = new McpServer(
   {
     name: 'autoclaude-memory',
-    version: '1.0.0',
+    version: '1.1.1',
   },
   {
     capabilities: {
