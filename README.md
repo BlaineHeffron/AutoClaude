@@ -112,9 +112,58 @@ Create `~/.autoclaude/config.json` to customize. All fields are optional — mis
   "logging": {
     "level": "info",
     "file": "~/.autoclaude/logs/autoclaude.log"
+  },
+  "pruner": {
+    "enabled": true,
+    "url": "http://localhost:8000",
+    "threshold": 0.5,
+    "timeout": 5000,
+    "adaptiveThreshold": true
   }
 }
 ```
+
+## SWE-Pruner Integration
+
+AutoClaude optionally integrates with [SWE-Pruner](https://github.com/ayanami-kitasan/SWE-Pruner), a neural code pruning model that intelligently removes irrelevant code from context before injection. When available, it replaces simple truncation with semantic pruning — keeping the most relevant parts of large code blocks within the token budget.
+
+### Setup
+
+1. Install dependencies:
+   ```bash
+   pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+   ```
+
+2. Clone and install SWE-Pruner:
+   ```bash
+   git clone https://github.com/ayanami-kitasan/SWE-Pruner.git
+   cd SWE-Pruner
+   pip3 install -e . --no-deps
+   ```
+
+3. Download the model:
+   ```bash
+   huggingface-cli download ayanami-kitasan/code-pruner --local-dir ./model
+   ```
+
+4. Start the server:
+   ```bash
+   python3 -m swe_pruner.online_serving --port 8000
+   ```
+
+AutoClaude checks the pruner's `/health` endpoint on each use and falls back to truncation if the server is unavailable. No configuration is required if the server runs on the default `http://localhost:8000`.
+
+### Pruner Configuration
+
+All pruner settings are optional in `~/.autoclaude/config.json`:
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `pruner.enabled` | `true` | Enable/disable pruner integration entirely |
+| `pruner.url` | `http://localhost:8000` | URL of the SWE-Pruner FastAPI server |
+| `pruner.threshold` | `0.5` | Base pruning threshold (0–1). Lower = more aggressive |
+| `pruner.timeout` | `5000` | HTTP request timeout in milliseconds |
+| `pruner.adaptiveThreshold` | `true` | Automatically lower threshold at high context utilization |
 
 ## Data Storage
 
