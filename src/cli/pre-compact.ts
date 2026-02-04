@@ -105,6 +105,13 @@ export async function handlePreCompact(input: HookInput): Promise<HookOutput> {
     logger.info(
       `[pre-compact] Snapshot saved for session ${sessionId}: ${progressSummary}`,
     );
+
+    return {
+      continue: true,
+      hookSpecificOutput: {
+        systemMessage: `[autoclaude] Pre-compact snapshot saved: ${progressSummary}`,
+      },
+    };
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     logger.error(`[pre-compact] ${msg}`);

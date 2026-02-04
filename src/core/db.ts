@@ -95,6 +95,9 @@ export function getDb(): DatabaseType | null {
     // Enable WAL mode before applying schema for better concurrent access.
     // This is idempotent - if already in WAL mode, this is a no-op.
     db.pragma('journal_mode = WAL');
+    // Wait up to 5s for write lock instead of failing immediately.
+    // Hooks run as separate processes and can overlap.
+    db.pragma('busy_timeout = 5000');
 
     applySchema(db);
 
