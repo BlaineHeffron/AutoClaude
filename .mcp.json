@@ -1,9 +1,11 @@
 {
-  "autoclaude-memory": {
-    "command": "node",
-    "args": ["${CLAUDE_PLUGIN_ROOT}/dist/mcp/index.js"],
-    "env": {
-      "AUTOCLAUDE_DB": "${HOME}/.autoclaude/memory.db"
+  "mcpServers": {
+    "autoclaude-memory": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/dist/mcp/index.js"],
+      "env": {
+        "AUTOCLAUDE_DB": "${HOME}/.autoclaude/memory.db"
+      }
     }
   }
 }
