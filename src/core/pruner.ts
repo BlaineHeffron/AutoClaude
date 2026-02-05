@@ -22,6 +22,14 @@ interface PrunerPruneResponse {
 }
 
 // ---------------------------------------------------------------------------
+// URL resolution — env var overrides config (useful for testing)
+// ---------------------------------------------------------------------------
+
+function getPrunerUrl(): string {
+  return process.env.AUTOCLAUDE_PRUNER_URL || getConfig().pruner.url;
+}
+
+// ---------------------------------------------------------------------------
 // Health check cache
 // ---------------------------------------------------------------------------
 
@@ -50,7 +58,8 @@ export async function isAvailable(): Promise<boolean> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 3000);
 
-    const res = await fetch(`${config.pruner.url}/health`, {
+    const url = getPrunerUrl();
+    const res = await fetch(`${url}/health`, {
       signal: controller.signal,
     });
     clearTimeout(timeout);
@@ -88,7 +97,8 @@ export async function prune(
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const res = await fetch(`${config.pruner.url}/prune`, {
+    const url = getPrunerUrl();
+    const res = await fetch(`${url}/prune`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code: text, query, threshold }),
