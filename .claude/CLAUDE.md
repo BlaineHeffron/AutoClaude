@@ -2,8 +2,8 @@
 
 ## What This Is
 
-AutoClaude is a Claude Code plugin that provides persistent memory across sessions.
-Self-contained plugin (not a wrapper). Install: `claude plugins add ./`.
+AutoClaude provides persistent memory and token minimization for both Claude Code and Codex.
+Claude runs full plugin hooks; Codex uses MCP + skill mode (`npm run install:codex`).
 
 ## Key Facts
 
@@ -13,6 +13,7 @@ Self-contained plugin (not a wrapper). Install: `claude plugins add ./`.
 - Data stored in `~/.autoclaude/memory.db` (SQLite, WAL mode)
 - Token budget priority: snapshot > decisions > learnings > sessions
 - FTS5 indexes on sessions, decisions, learnings, prompts
+- MCP exposes `search`, `record_decision`, `record_learning`, `prune`, `compress`, `metrics`
 
 ## Commands
 
@@ -20,6 +21,7 @@ Self-contained plugin (not a wrapper). Install: `claude plugins add ./`.
 npm run build   # production build (esbuild)
 npm test        # build tests + run all (includes benchmarks)
 npm run lint    # ESLint
+npm run install:codex  # install Codex skill + MCP wiring
 ```
 
 <claude-mem-context>

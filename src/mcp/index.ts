@@ -1,10 +1,12 @@
 /**
  * AutoClaude MCP Server
  *
- * Exposes memory store tools to Claude via the Model Context Protocol:
+ * Exposes memory store tools to coding agents via the Model Context Protocol:
  * - search: Full-text search across sessions, decisions, learnings
  * - record_decision: Record an architectural decision
  * - record_learning: Record a gotcha, pattern, or insight
+ * - prune: Neural line-level pruning for large context
+ * - compress: Token compression (prune + truncation fallback)
  * - metrics: Get session and project performance metrics
  */
 
@@ -56,14 +58,24 @@ logger.info('[mcp] autoclaude MCP server starting');
  * Detects the current project path from environment or cwd.
  */
 function getProjectPath(): string {
-  return process.env.AUTOCLAUDE_PROJECT_PATH || process.cwd();
+  return (
+    process.env.AUTOCLAUDE_PROJECT_PATH ||
+    process.env.CODEX_PROJECT_ROOT ||
+    process.cwd()
+  );
 }
 
 /**
  * Detects the current session ID from environment.
  */
+const FALLBACK_SESSION_ID = `manual-${process.pid}`;
+
 function getSessionId(): string {
-  return process.env.AUTOCLAUDE_SESSION_ID || 'unknown';
+  return (
+    process.env.AUTOCLAUDE_SESSION_ID ||
+    process.env.CODEX_THREAD_ID ||
+    FALLBACK_SESSION_ID
+  );
 }
 
 /**

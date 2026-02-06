@@ -2,15 +2,16 @@
 
 ## What This Is
 
-AutoClaude is a Claude Code plugin that provides persistent memory across sessions.
-It is a **self-contained plugin** (not a wrapper script). Install with `claude plugins add ./`.
+AutoClaude provides persistent memory and token minimization for both Claude Code and Codex.
+Claude uses full plugin hooks; Codex uses MCP + skill mode (`npm run install:codex`).
 
 ## Architecture
 
 - `src/cli/` — Hook handlers (session-start, capture-action, user-prompt, pre-compact, session-stop, session-end) + CLI commands (backup, export, gc, query, stats)
 - `src/core/` — Engine: db.ts (SQLite), memory.ts (18 public DAL functions), injector.ts (token-budgeted context assembly), analyzer.ts (decision/learning extraction), summarizer.ts, metrics.ts
-- `src/mcp/` — MCP server with 4 tools (search, record_decision, record_learning, metrics)
+- `src/mcp/` — MCP server with 6 tools (search, record_decision, record_learning, prune, compress, metrics)
 - `src/util/` — config.ts, logger.ts, tokens.ts
+- `codex-skill/autoclaude-codex/` — Codex skill package
 - `tests/` — 19 test files, 123 tests including 26 benchmark assertions. Node.js built-in test runner, real SQLite (no mocks).
 - `sql/schema.sql` — 7 tables + FTS5 indexes + sync triggers
 - `hooks/hooks.json` — 6 lifecycle hooks
@@ -33,6 +34,7 @@ npm run build:tsc  # TypeScript with type checking
 npm test           # build tests + run (includes benchmarks)
 npm run lint       # ESLint
 npm run format     # Prettier
+npm run install:codex  # install Codex skill + MCP wiring
 ```
 
 ## Testing

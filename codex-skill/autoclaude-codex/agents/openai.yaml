@@ -1,0 +1,4 @@
+interface:
+  display_name: "AutoClaude for Codex"
+  short_description: "Reduce tokens with memory-aware MCP workflows"
+  default_prompt: "Use $autoclaude-codex to minimize tokens and persist durable memory for this task."
