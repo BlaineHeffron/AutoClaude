@@ -186,6 +186,8 @@ npm run build:tsc
 npm test
 npm run lint
 npm run format
+npm run bench:codex:e2e                       # Codex with/without autoclaude-memory
+npm run bench:codex:e2e -- --mode guided      # explicit memory-tool usage benchmark
 ```
 
 ## License
