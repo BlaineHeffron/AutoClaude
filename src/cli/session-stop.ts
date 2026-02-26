@@ -7,6 +7,7 @@ import {
 } from '../core/memory';
 import { summarizeSession, collectUniqueFiles } from '../core/summarizer';
 import { extractLearningsFromSession } from '../core/analyzer';
+import { syncToNativeMemory } from '../core/native-memory';
 import { estimateUtilization } from '../core/metrics';
 import { getConfig } from '../util/config';
 import { logger } from '../util/logger';
@@ -49,6 +50,9 @@ export async function handleSessionStop(input: HookInput): Promise<HookOutput> {
     }
 
     updateSession(sessionId, updates);
+
+    // Sync structured data to Claude Code's native memory directory
+    syncToNativeMemory(projectPath);
 
     logger.info(
       `[session-stop] Session ${sessionId} stopped. ${actions.length} actions, summary: ${summary.slice(0, 120)}`,

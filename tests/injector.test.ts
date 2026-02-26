@@ -41,7 +41,7 @@ describe('Injector', () => {
     assert.equal(result, '');
   });
 
-  it('should include sessions section', () => {
+  it('should not include sessions section (handled by native memory)', () => {
     createSession('inj-prev-1', '/test/project');
     updateSession('inj-prev-1', {
       summary: 'Previous session implemented auth module',
@@ -49,17 +49,8 @@ describe('Injector', () => {
     });
 
     createSession('inj-current', '/test/project');
-    const result = buildInjectionContext(
-      '/test/project',
-      'inj-current',
-      'startup',
-      DEFAULT_CONFIG,
-    );
-    assert.ok(result.includes('Recent Sessions'), `Got: ${result}`);
-    assert.ok(result.includes('auth module'), `Got: ${result}`);
-  });
 
-  it('should include decisions section', () => {
+    // Add a decision so there's something to inject
     insertDecision({
       session_id: 'inj-prev-1',
       project_path: '/test/project',
@@ -70,6 +61,20 @@ describe('Injector', () => {
       supersedes_id: null,
     });
 
+    const result = buildInjectionContext(
+      '/test/project',
+      'inj-current',
+      'startup',
+      DEFAULT_CONFIG,
+    );
+    // Sessions are no longer injected — native memory handles them
+    assert.ok(
+      !result.includes('Recent Sessions'),
+      'Should not include Recent Sessions',
+    );
+  });
+
+  it('should include decisions section', () => {
     const result = buildInjectionContext(
       '/test/project',
       'inj-current',
@@ -134,8 +139,8 @@ describe('Injector', () => {
     );
   });
 
-  it('should skip sessions and learnings at critical utilization', () => {
-    // At 75% utilization (above criticalUtilization=70%), sessions and learnings are skipped
+  it('should skip learnings at critical utilization', () => {
+    // At 75% utilization (above criticalUtilization=70%), learnings are skipped
     const result = buildInjectionContext(
       '/test/project',
       'inj-current',
@@ -144,11 +149,7 @@ describe('Injector', () => {
       { utilization: 0.75 },
     );
 
-    // Should NOT include Recent Sessions or Learnings sections
-    assert.ok(
-      !result.includes('Recent Sessions'),
-      `Should not include Recent Sessions at critical utilization`,
-    );
+    // Should NOT include Learnings section
     assert.ok(
       !result.includes('Learnings'),
       `Should not include Learnings at critical utilization`,

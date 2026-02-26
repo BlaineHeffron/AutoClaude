@@ -1,15 +1,9 @@
 import {
-  getRecentSummarizedSessions,
   getActiveDecisions,
   getTopLearnings,
   getLatestProjectSnapshot,
 } from './memory';
-import type {
-  SessionRecord,
-  DecisionRecord,
-  LearningRecord,
-  SnapshotRecord,
-} from './memory';
+import type { DecisionRecord, LearningRecord, SnapshotRecord } from './memory';
 import { estimateTokens, truncateToTokenBudget } from '../util/tokens';
 import type { AutoClaudeConfig } from '../util/config';
 import { logger } from '../util/logger';
@@ -28,15 +22,17 @@ export interface InjectionOptions {
 /**
  * Builds the full context injection string for a session start.
  *
- * Queries the memory store for recent sessions, active decisions, top
- * learnings, and (if resuming/compacting) the latest snapshot. Formats
- * each section as markdown and assembles them under a priority-based
- * token budget.
+ * Queries the memory store for active decisions, top learnings, and
+ * (if resuming/compacting) the latest snapshot. Formats each section
+ * as markdown and assembles them under a priority-based token budget.
+ *
+ * Session summaries are NOT injected here — Claude Code's native memory
+ * handles that via MEMORY.md files.
  *
  * When utilization is provided, the budget is reduced proportionally:
  * - Below warnUtilization (55%): full budget
  * - At warnUtilization: budget scaled down to 50%
- * - At criticalUtilization (70%): budget slashed to 30%, sessions/learnings skipped
+ * - At criticalUtilization (70%): budget slashed to 30%, learnings skipped
  *
  * Returns an empty string when there is nothing to inject.
  */
@@ -51,13 +47,11 @@ export function buildInjectionContext(
 
   // Compute effective token budget based on utilization
   let effectiveBudget = config.injection.maxTokens;
-  let skipSessions = false;
   let skipLearnings = false;
 
   if (utilization >= config.metrics.criticalUtilization) {
-    // Critical: slash to 30%, skip sessions and learnings
+    // Critical: slash to 30%, skip learnings
     effectiveBudget = Math.floor(config.injection.maxTokens * 0.3);
-    skipSessions = true;
     skipLearnings = true;
     logger.info(
       `injector: critical utilization (${(utilization * 100).toFixed(0)}%), budget reduced to ${effectiveBudget} tokens`,
@@ -75,14 +69,10 @@ export function buildInjectionContext(
   }
 
   // 1. Gather raw data from memory store
-  let sessionsSection = '';
-  if (!skipSessions && config.injection.includeSessions > 0) {
-    const sessions = getRecentSummarizedSessions(
-      projectPath,
-      config.injection.includeSessions,
-    );
-    sessionsSection = formatSessionsSection(sessions);
-  }
+  // NOTE: Sessions section removed — Claude Code's native memory handles
+  // session summaries via MEMORY.md. We focus on structured data that
+  // native memory can't provide (decisions with superseding, learnings
+  // with decay scores, pre-compaction snapshots).
 
   let decisionsSection = '';
   if (config.injection.includeDecisions) {
@@ -110,7 +100,6 @@ export function buildInjectionContext(
       snapshot: snapshotSection,
       decisions: decisionsSection,
       learnings: learningsSection,
-      sessions: sessionsSection,
     },
     effectiveBudget,
   );
@@ -127,32 +116,6 @@ export function buildInjectionContext(
 // ---------------------------------------------------------------------------
 // Section formatters
 // ---------------------------------------------------------------------------
-
-function formatDate(isoString: string): string {
-  try {
-    const d = new Date(isoString);
-    return d.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return isoString;
-  }
-}
-
-function formatSessionsSection(sessions: SessionRecord[]): string {
-  if (sessions.length === 0) return '';
-
-  const lines = sessions
-    .filter((s) => s.summary)
-    .map((s) => `- [${formatDate(s.started_at)}]: ${s.summary}`);
-
-  if (lines.length === 0) return '';
-
-  return `## Recent Sessions\n${lines.join('\n')}`;
-}
 
 function formatDecisionsSection(decisions: DecisionRecord[]): string {
   if (decisions.length === 0) return '';
@@ -230,15 +193,13 @@ function loadSnapshotSection(
 
 /**
  * Assembles context sections in priority order (snapshot > decisions >
- * learnings > sessions) and trims the combined output to fit within
- * the token budget.
+ * learnings) and trims the combined output to fit within the token budget.
  */
 function assembleContext(
   sections: {
     snapshot: string;
     decisions: string;
     learnings: string;
-    sessions: string;
   },
   maxTokens: number,
 ): string {
@@ -250,14 +211,13 @@ function assembleContext(
     return truncateToTokenBudget(header, maxTokens);
   }
 
-  // Priority order: snapshot > decisions > learnings > sessions
+  // Priority order: snapshot > decisions > learnings
   const ordered: string[] = [];
 
   for (const section of [
     sections.snapshot,
     sections.decisions,
     sections.learnings,
-    sections.sessions,
   ]) {
     if (!section) continue;
 

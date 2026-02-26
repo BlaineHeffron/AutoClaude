@@ -71,7 +71,7 @@ const DEFAULT_CONFIG: AutoClaudeConfig = {
   injection: {
     enabled: true,
     maxTokens: 1000,
-    includeSessions: 3,
+    includeSessions: 0,
     includeDecisions: true,
     includeLearnings: true,
     includeSnapshot: true,

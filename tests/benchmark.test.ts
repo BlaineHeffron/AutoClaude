@@ -316,15 +316,12 @@ describe('Benchmark: Context Injection Relevance', () => {
       configWithBudget(2000),
     );
 
-    // With context: we should get prior session summaries, decisions, learnings
+    // With context: we should get decisions and learnings (sessions handled by native memory)
     const hasContent = ctx.length > 0;
-    const hasSessions = ctx.includes('Recent Sessions');
     const hasDecisions = ctx.includes('Active Decisions');
     const hasLearnings = ctx.includes('Learnings');
 
-    const sectionsPresent = [hasSessions, hasDecisions, hasLearnings].filter(
-      Boolean,
-    ).length;
+    const sectionsPresent = [hasDecisions, hasLearnings].filter(Boolean).length;
 
     // Baseline: without context injection, you get 0 sections, 0 tokens
     record(
@@ -557,7 +554,7 @@ describe('Benchmark: Token Budget Efficiency', () => {
       const utilization = budget > 0 ? tokensUsed / budget : 0;
 
       // Count sections present
-      const sections = ['Recent Sessions', 'Active Decisions', 'Learnings'];
+      const sections = ['Active Decisions', 'Learnings'];
       const presentSections = sections.filter((s) => ctx.includes(s)).length;
 
       // Information density: sections per 100 tokens

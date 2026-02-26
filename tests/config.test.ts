@@ -19,7 +19,7 @@ describe('Config', () => {
       // Verify all default values
       assert.equal(config.injection.enabled, true);
       assert.equal(config.injection.maxTokens, 1000);
-      assert.equal(config.injection.includeSessions, 3);
+      assert.equal(config.injection.includeSessions, 0);
       assert.equal(config.injection.includeDecisions, true);
       assert.equal(config.injection.includeLearnings, true);
       assert.equal(config.injection.includeSnapshot, true);
