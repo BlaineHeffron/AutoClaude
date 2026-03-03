@@ -46,17 +46,30 @@ echo "Bumping version: $CURRENT -> $NEW_VERSION"
 # 1. package.json
 sed -i "s/\"version\": \"$CURRENT\"/\"version\": \"$NEW_VERSION\"/" "$ROOT/package.json"
 
-# 2. .claude-plugin/plugin.json
+# 2. package-lock.json root package version
+node - <<'EOF' "$ROOT/package-lock.json" "$NEW_VERSION"
+const fs = require('fs');
+const [file, version] = process.argv.slice(2);
+const lock = JSON.parse(fs.readFileSync(file, 'utf8'));
+lock.version = version;
+if (lock.packages && lock.packages['']) {
+  lock.packages[''].version = version;
+}
+fs.writeFileSync(file, `${JSON.stringify(lock, null, 2)}\n`);
+EOF
+
+# 3. .claude-plugin/plugin.json
 sed -i "s/\"version\": \"$CURRENT\"/\"version\": \"$NEW_VERSION\"/" "$ROOT/.claude-plugin/plugin.json"
 
-# 3. .claude-plugin/marketplace.json
+# 4. .claude-plugin/marketplace.json
 sed -i "s/\"version\": \"$CURRENT\"/\"version\": \"$NEW_VERSION\"/" "$ROOT/.claude-plugin/marketplace.json"
 
-# 4. MCP server version in source
+# 5. MCP server version in source
 sed -i "s/version: '$CURRENT'/version: '$NEW_VERSION'/" "$ROOT/src/mcp/index.ts"
 
 echo "Updated files:"
 echo "  package.json"
+echo "  package-lock.json"
 echo "  .claude-plugin/plugin.json"
 echo "  .claude-plugin/marketplace.json"
 echo "  src/mcp/index.ts"

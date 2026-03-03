@@ -104,7 +104,12 @@ const DEFAULT_CONFIG: AutoClaudeConfig = {
   },
 };
 
-const CONFIG_PATH = path.join(os.homedir(), '.autoclaude', 'config.json');
+function getConfigPath(): string {
+  return (
+    process.env.AUTOCLAUDE_CONFIG ||
+    path.join(os.homedir(), '.autoclaude', 'config.json')
+  );
+}
 
 function deepMerge<T extends Record<string, unknown>>(
   defaults: T,
@@ -257,7 +262,7 @@ function validateConfig(config: AutoClaudeConfig): AutoClaudeConfig {
 
 export function getConfig(): AutoClaudeConfig {
   try {
-    const raw = fs.readFileSync(CONFIG_PATH, 'utf-8');
+    const raw = fs.readFileSync(getConfigPath(), 'utf-8');
     const userConfig = JSON.parse(raw) as Record<string, unknown>;
     const merged = deepMerge(
       DEFAULT_CONFIG as unknown as Record<string, unknown>,

@@ -3,7 +3,7 @@
 ## What This Is
 
 AutoClaude provides structured memory management, token minimization, and intelligent
-context for Claude Code and Codex. It complements Claude Code's native memory (MEMORY.md)
+context for Claude Code. It complements Claude Code's native memory (MEMORY.md)
 by adding features native memory lacks: FTS5 search, relevance decay, token budgeting,
 implicit decision extraction, error-fix learning, and pre-compaction snapshots.
 
@@ -13,7 +13,6 @@ implicit decision extraction, error-fix learning, and pre-compaction snapshots.
 - `src/core/` — Engine: db.ts (SQLite), memory.ts (18 public DAL functions), injector.ts (token-budgeted context assembly), analyzer.ts (decision/learning extraction), summarizer.ts, metrics.ts, native-memory.ts (bridge to Claude Code's native memory)
 - `src/mcp/` — MCP server with 6 tools (search, record_decision, record_learning, prune, compress, metrics)
 - `src/util/` — config.ts, logger.ts, tokens.ts
-- `codex-skill/autoclaude-codex/` — Codex skill package
 - `tests/` — Test files with Node.js built-in test runner, real SQLite (no mocks).
 - `sql/schema.sql` — 7 tables + FTS5 indexes + sync triggers
 - `hooks/hooks.json` — 6 lifecycle hooks
@@ -37,7 +36,7 @@ npm run build:tsc  # TypeScript with type checking
 npm test           # build tests + run (includes benchmarks)
 npm run lint       # ESLint
 npm run format     # Prettier
-npm run install:codex  # install Codex skill + MCP wiring
+npm run install:codex  # remove legacy Codex skill + MCP wiring
 ```
 
 ## Testing

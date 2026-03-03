@@ -1,11 +1,11 @@
 # AutoClaude
 
-AutoClaude is a memory + token-minimization toolkit for coding agents.
+AutoClaude is a context-management toolkit for coding agents.
 
 - **Claude Code**: full plugin mode (hooks + slash skills + MCP).
-- **Codex CLI**: MCP + Codex skill mode (no Claude lifecycle hooks required).
+- **Codex CLI**: native memory is built in, so AutoClaude no longer installs a separate Codex memory layer.
 
-## Install for Codex
+## Codex Cleanup
 
 ```bash
 git clone https://github.com/BlaineHeffron/autoclaude.git
@@ -14,13 +14,9 @@ npm install
 npm run install:codex
 ```
 
-The installer:
-
-1. Builds `dist/`
-2. Installs skill `autoclaude-codex` into `~/.codex/skills/`
-3. Registers MCP server `autoclaude-memory` via `codex mcp add`
-
-Restart Codex after install so it loads the new skill.
+`install:codex` now removes the legacy AutoClaude Codex skill and `autoclaude-memory`
+MCP entry. Codex has native memory support, so AutoClaude only provides a cleanup path
+for older installs.
 
 ## Install for Claude
 
@@ -43,9 +39,9 @@ claude plugins add ./
 
 ## How It Works
 
-### Shared Engine
+### Claude Engine
 
-Both Claude and Codex use the same backend:
+Claude uses AutoClaude's backend for structured context capture and retrieval:
 
 - SQLite memory store (`~/.autoclaude/memory.db`)
 - MCP server (`dist/mcp/index.js`)
@@ -63,20 +59,10 @@ Claude uses plugin lifecycle hooks for automatic capture/injection:
 
 ### Codex Mode
 
-Codex uses:
-
-- MCP server tools for recall/compression/persistence
-- Skill `autoclaude-codex` for workflow guidance
-
-Codex does **not** have Claude's hook lifecycle, so automatic hook-based capture/injection is not used.
+Codex uses its own native memory. AutoClaude does not install a separate Codex skill
+or MCP server anymore.
 
 ## Usage
-
-### Codex
-
-1. Start Codex in your project.
-2. Invoke the skill by mentioning `$autoclaude-codex`.
-3. Let Codex call MCP tools (`search`, `compress`, `prune`, `record_decision`, `record_learning`, `metrics`) as needed.
 
 ### Claude
 
@@ -165,7 +151,7 @@ huggingface-cli download ayanami-kitasan/code-pruner --local-dir ./model
 python3 -m swe_pruner.online_serving --port 8000
 ```
 
-## Uninstall from Codex
+## Remove Legacy Codex Integration
 
 ```bash
 npm run uninstall:codex
@@ -173,8 +159,7 @@ npm run uninstall:codex
 
 ## Troubleshooting
 
-- **Codex skill missing**: rerun `npm run install:codex`, then restart Codex.
-- **Codex MCP missing**: check with `codex mcp list`, reinstall if needed.
+- **Codex still shows `autoclaude-memory`**: run `npm run install:codex` or `npm run uninstall:codex`, then restart Codex.
 - **Claude hooks not firing**: run `claude plugins list`, then `claude plugins add ./`.
 - **MCP startup issues**: test with `node dist/mcp/index.js`, then `npm rebuild better-sqlite3`.
 
@@ -186,8 +171,7 @@ npm run build:tsc
 npm test
 npm run lint
 npm run format
-npm run bench:codex:e2e                       # Codex with/without autoclaude-memory
-npm run bench:codex:e2e -- --mode guided      # explicit memory-tool usage benchmark
+npm run install:codex                         # remove legacy Codex MCP/skill wiring
 ```
 
 ## License

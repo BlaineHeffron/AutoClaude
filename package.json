@@ -1,7 +1,7 @@
 {
   "name": "autoclaude",
-  "version": "1.2.0",
-  "description": "Automated context management across Claude Code sessions",
+  "version": "1.3.0",
+  "description": "Structured memory and context management for Claude Code",
   "main": "dist/cli/index.js",
   "bin": {
     "autoclaude": "bin/autoclaude"
@@ -17,10 +17,9 @@
     "start": "node dist/cli/index.js",
     "test": "node --test dist/tests/*.test.js",
     "pretest": "npx esbuild tests/*.test.ts --bundle --platform=node --format=cjs --outdir=dist/tests --external:better-sqlite3 --sourcemap",
-    "bench:e2e:build": "mkdir -p dist/sql && cp sql/schema.sql dist/sql/ && npx esbuild benchmarks/providers/*.ts benchmarks/hooks/setup.ts benchmarks/ground-truth.ts benchmarks/seed.ts benchmarks/scenarios.ts benchmarks/codex-e2e.ts --bundle --platform=node --format=cjs --outdir=dist/benchmarks --external:better-sqlite3 --external:promptfoo --sourcemap",
+    "bench:e2e:build": "mkdir -p dist/sql && cp sql/schema.sql dist/sql/ && npx esbuild benchmarks/providers/*.ts benchmarks/hooks/setup.ts benchmarks/ground-truth.ts benchmarks/seed.ts benchmarks/scenarios.ts --bundle --platform=node --format=cjs --outdir=dist/benchmarks --external:better-sqlite3 --external:promptfoo --sourcemap",
     "bench:e2e": "npm run bench:e2e:build && npx promptfoo eval -c benchmarks/promptfooconfig.yaml",
     "bench:e2e:view": "npx promptfoo view",
-    "bench:codex:e2e": "npm run bench:e2e:build && node dist/benchmarks/codex-e2e.js",
     "lint": "eslint src/ tests/",
     "format": "prettier --write src/ tests/",
     "prepare": "husky"
@@ -33,7 +32,6 @@
   },
   "keywords": [
     "claude-code",
-    "codex",
     "context-management",
     "session-memory",
     "plugin"

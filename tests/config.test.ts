@@ -1,5 +1,8 @@
-import { describe, it } from 'node:test';
+import { after, beforeEach, describe, it } from 'node:test';
 import * as assert from 'node:assert/strict';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 
 // We test config by importing the module and checking behavior with various
 // config files. The config module reads from ~/.autoclaude/config.json,
@@ -11,7 +14,30 @@ import * as assert from 'node:assert/strict';
 
 import { getConfig, DEFAULT_CONFIG } from '../src/util/config';
 
+const TEST_DIR = fs.mkdtempSync(
+  path.join(os.tmpdir(), 'autoclaude-config-test-'),
+);
+const TEST_CONFIG_PATH = path.join(TEST_DIR, 'config.json');
+
 describe('Config', () => {
+  beforeEach(() => {
+    process.env.AUTOCLAUDE_CONFIG = TEST_CONFIG_PATH;
+    try {
+      fs.rmSync(TEST_CONFIG_PATH);
+    } catch {
+      // ignore
+    }
+  });
+
+  after(() => {
+    delete process.env.AUTOCLAUDE_CONFIG;
+    try {
+      fs.rmSync(TEST_DIR, { recursive: true, force: true });
+    } catch {
+      // ignore
+    }
+  });
+
   describe('Default config', () => {
     it('should return default config when no config file exists', () => {
       const config = getConfig();

@@ -52,7 +52,7 @@ function getSessionId(): string {
 const server = new McpServer(
   {
     name: 'autoclaude-memory',
-    version: '1.2.0',
+    version: '1.3.0',
   },
   {
     capabilities: {
